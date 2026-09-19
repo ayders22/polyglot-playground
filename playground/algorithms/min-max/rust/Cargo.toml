@@ -1,0 +1,17 @@
+[package]
+name = "min-max"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dev-dependencies]
+criterion = { version = "0.8", default-features = false, features = [
+    "cargo_bench_support",
+] }
+
+[[bench]]
+name = "min_max"
+harness = false
