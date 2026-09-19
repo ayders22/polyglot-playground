@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Prepare
+        run: |
+          rustup update stable
+          rustup default stable
+          rustup component add rustfmt clippy
+
+      - name: Clean
+        run: make clean-rs
+
+      - name: Format
+        run: |
+          make format-rs
+          git diff --exit-code
+
+      - name: Lint
+        run: make lint-rs
+
+      - name: Test
+        run: make test-rs
+
+      - name: Benchmark
+        run: make bench-rs
+
+  python:
+    name: Python
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Prepare
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-venv python3-pip
+
+      - name: Clean
+        run: make clean-py
+
+      - name: Format
+        run: |
+          make format-py
+          git diff --exit-code
+
+      - name: Lint
+        run: make lint-py
+
+      - name: Test
+        run: make test-py
+
+      - name: Benchmark
+        run: make bench-py
+
+  all-check:
+    name: All check
+    if: ${{ always() }}
+    needs: [rust, python]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify results
+        run: |
+          test "${{ needs.rust.result }}" = "success"
+          test "${{ needs.python.result }}" = "success"
