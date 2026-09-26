@@ -102,7 +102,7 @@ bench-c:
 	$(call VALIDATE_EXERCISE,c)
 	$(CMAKE) -S . -B "$(C_BENCHMARK_BUILD_DIR)" $(C_BENCHMARK_CMAKE_ARGS)
 	$(CMAKE) --build "$(C_BENCHMARK_BUILD_DIR)" --config Release
-	$(CMAKE) --test-dir "$(C_BENCHMARK_BUILD_DIR)" --build-config Release --label-regex benchmark --verbose
+	$(CTEST) --test-dir "$(C_BENCHMARK_BUILD_DIR)" --build-config Release --label-regex benchmark --verbose
 
 clean: clean-rs clean-py clean-c
 	rm -rf target

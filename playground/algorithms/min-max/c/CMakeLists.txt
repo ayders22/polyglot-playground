@@ -14,12 +14,13 @@ set(MIN_MAX_WARNINGS -Wall -Wextra -Wpedantic -Werror)
 target_compile_options(min_max_c PRIVATE ${MIN_MAX_WARNINGS})
 
 if(BUILD_BENCHMARKING)
-    add_executable(min_max_c_benchmarks benchmarks/min_max.c)
+    add_executable(min_max_c_benchmarks benchmarks/min_max.cc)
     target_link_libraries(min_max_c_benchmarks PRIVATE min_max_c benchmark::benchmark_main)
     target_compile_features(min_max_c_benchmarks PRIVATE cxx_std_17)
     target_compile_options(min_max_c_benchmarks PRIVATE ${MIN_MAX_WARNINGS})
 
     add_test(NAME min-max-c-benchmark COMMAND min_max_c_benchmarks)
+    set_tests_properties(min-max-c-benchmark PROPERTIES LABELS benchmark)
     set_target_properties(min_max_c_benchmarks PROPERTIES C_EXTENSIONS OFF)
 endif()
 

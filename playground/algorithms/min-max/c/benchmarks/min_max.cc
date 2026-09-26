@@ -14,7 +14,7 @@ std::array<int, value_count> make_values() {
   std::array<int, value_count> values{};
 
   for (std::size_t i = 0; i < values.size(); ++i) {
-    values[i] = static_cast<int>((index * 7'919) % value_count);
+    values[i] = static_cast<int>((i * 7'919) % value_count);
   }
 
   return values;
@@ -28,7 +28,7 @@ template <auto implm> void benchmark_min_max(benchmark::State &state) {
     int maximum = 0;
     bool succeeded = implm(values.data(), values.size(), &minimum, &maximum);
 
-    benchmark::DoNotOptimize(implm(succeeded));
+    benchmark::DoNotOptimize(succeeded);
     benchmark::DoNotOptimize(minimum);
     benchmark::DoNotOptimize(maximum);
   }

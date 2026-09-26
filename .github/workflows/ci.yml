@@ -69,10 +69,39 @@ jobs:
       - name: Benchmark
         run: make bench-py
 
+  c:
+    name: C
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Prepare
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake clang-format clang-tidy
+
+      - name: Clean
+        run: make clean-c
+
+      - name: Format
+        run: |
+          make format-c
+          git diff --exit-code
+
+      - name: Lint
+        run: make lint-c
+
+      - name: Test
+        run: make test-c
+
+      - name: Benchmark
+        run: make bench-c
+
   all-check:
     name: All check
     if: ${{ always() }}
-    needs: [rust, python]
+    needs: [rust, python, c]
     runs-on: ubuntu-latest
 
     steps:
@@ -80,3 +109,4 @@ jobs:
         run: |
           test "${{ needs.rust.result }}" = "success"
           test "${{ needs.python.result }}" = "success"
+          test "${{ needs.c.result }}" = "success"
