@@ -4,9 +4,9 @@ CTEST ?= ctest
 CLANG_FORMAT ?= clang-format
 CLANG_TIDY ?= clang-tidy
 
-LANGUAGES := rs c cpp
+LANGUAGES := rs py c cpp
 
-BENCHMARK_TARGETS := benchmark $(addprefix benchmark-,$(LANGUAGES))
+BENCHMARK_TARGETS := bench $(addprefix bench-,$(LANGUAGES))
 CLEAN_TARGETS := clean $(addprefix clean-,$(LANGUAGES))
 FORMAT_TARGETS := $(addprefix format-,$(LANGUAGES))
 LINT_TARGETS := $(addprefix lint-,$(LANGUAGES))
@@ -20,18 +20,10 @@ PYTEST := $(PYTHON_VENV)/bin/pytest
 RUFF := $(PYTHON_VENV)/bin/ruff
 PYTHON_EXERCISES := $(sort $(shell find playground -type d -name python))
 
-C_BUILD_ROOT := build/c
-C_BENCHMARK_BUILD_ROOT := ${C_BUILD_ROOT}/benchmark
-C_TEST_BUILD_ROOT := ${C_BUILD_ROOT}/test
-C_LINT_BUILD_ROOT := ${C_BUILD_ROOT}/lint
 C_EXERCISES := $(sort $(shell find playground -type d -name c))
 C_SOURCES := $(sort $(shell find ${C_EXERCISES} -type f -path '*/src/*.c'))
 C_FILES := $(sort $(shell find ${C_EXERCISES} -type f \( -name '*.c' -o -name '*.cc' -o -name '*.h' \)))
 
-CPP_BUILD_ROOT := build/cpp
-CPP_BENCHMARK_BUILD_ROOT := ${CPP_BUILD_ROOT}/benchmark
-CPP_TEST_BUILD_ROOT := ${CPP_BUILD_ROOT}/test
-CPP_LINT_BUILD_ROOT := ${CPP_BUILD_ROOT}/lint
 CPP_EXERCISES := $(sort $(shell find playground -type d -name cpp))
 CPP_SOURCES := $(sort $(shell find ${CPP_EXERCISES} -type f -path '*/src/*.cpp'))
 CPP_FILES := $(sort $(shell find ${CPP_EXERCISES} -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.cxx' -o -name '*.hpp' -o -name '*.h' \)))
@@ -112,17 +104,11 @@ bench-py:
 		fi; \
 	done
 
-bench-c:
-	$(call VALIDATE_EXERCISE,c)
-	$(CMAKE) -S . -B "$(C_BENCHMARK_BUILD_DIR)" $(C_BENCHMARK_CMAKE_ARGS)
-	$(CMAKE) --build "$(C_BENCHMARK_BUILD_DIR)" --config Release
-	$(CTEST) --test-dir "$(C_BENCHMARK_BUILD_DIR)" --build-config Release --label-regex benchmark --verbose
-
-bench-cpp:
-	$(call VALIDATE_EXERCISE,cpp)
-	$(CMAKE) -S . -B "$(CPP_BENCHMARK_BUILD_DIR)" $(CPP_BENCHMARK_CMAKE_ARGS)
-	$(CMAKE) --build "$(CPP_BENCHMARK_BUILD_DIR)" --config Release
-	$(CTEST) --test-dir "$(CPP_BENCHMARK_BUILD_DIR)" --build-config Release --label-regex benchmark --verbose
+bench-c bench-cpp: bench-%:
+	$(call VALIDATE_EXERCISE,$*)
+	$(CMAKE) -S . -B "build/$*/benchmark$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_BENCHMARKING=ON -DEXERCISE_PATH="$(EXERCISE_PATH)"
+	$(CMAKE) --build "build/$*/benchmark$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" --config Release
+	$(CTEST) --test-dir "build/$*/benchmark$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" --build-config Release --label-regex benchmark --verbose
 
 clean: clean-rs clean-py clean-c clean-cpp
 	rm -rf target
@@ -134,11 +120,8 @@ clean-py:
 	rm -rf $(PYTHON_VENV) .pytest_cache .ruff_cache .benchmarks
 	find playground -type d -name __pycache__ -prune -exec rm -rf {} +
 
-clean-c:
-	rm -rf $(C_BUILD_ROOT)
-
-clean-cpp:
-	rm -rf $(CPP_BUILD_ROOT)
+clean-c clean-cpp: clean-%:
+	rm -rf build/$*
 
 format-rs:
 	cargo fmt --all
@@ -147,13 +130,9 @@ format-py:
 	$(PREPARE_PYTHON)
 	$(RUFF) format $(PYTHON_EXERCISES)
 
-format-c:
+format-c format-cpp: format-%:
 	$(call REQUIRE_TOOL,$(CLANG_FORMAT))
-	$(CLANG_FORMAT) -i $(C_FILES)
-
-format-cpp:
-	$(call REQUIRE_TOOL,$(CLANG_FORMAT))
-	$(CLANG_FORMAT) -i $(CPP_FILES)
+	$(CLANG_FORMAT) -i $(if $(filter c,$*),$(C_FILES),$(CPP_FILES))
 
 lint-rs:
 	cargo clippy --workspace --all-targets --all-features -- -D warnings
@@ -162,17 +141,11 @@ lint-py:
 	$(PREPARE_PYTHON)
 	$(RUFF) check $(PYTHON_EXERCISES)
 
-lint-c:
+lint-c lint-cpp: lint-%:
 	$(call REQUIRE_TOOL,$(CLANG_TIDY))
-	$(CMAKE) -S . -B "$(C_LINT_BUILD_DIR)" $(C_LINT_CMAKE_ARGS)
-	$(CMAKE) --build "$(C_LINT_BUILD_DIR)"
-	$(CLANG_TIDY) --warnings-as-errors='*' -p $(C_LINT_BUILD_DIR) $(C_SOURCES)
-
-lint-cpp:
-	$(call REQUIRE_TOOL,$(CLANG_TIDY))
-	$(CMAKE) -S . -B "$(CPP_LINT_BUILD_DIR)" $(CPP_LINT_CMAKE_ARGS)
-	$(CMAKE) --build "$(CPP_LINT_BUILD_DIR)"
-	$(CLANG_TIDY) --warnings-as-errors='*' -p $(CPP_LINT_BUILD_DIR) $(CPP_SOURCES)
+	$(CMAKE) -S . -B "build/$*/lint$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" -DBUILD_TESTING=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+	$(CMAKE) --build "build/$*/lint$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))"
+	$(CLANG_TIDY) --warnings-as-errors='*' -p "build/$*/lint$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" $(if $(filter c,$*),$(C_SOURCES),$(CPP_SOURCES))
 
 test: test-rs test-py test-c test-cpp
 
@@ -187,14 +160,8 @@ test-py:
 		PYTHONPATH="$$dir/src" $(PYTEST) "$$dir/tests"; \
 	done
 
-test-c:
-	$(call VALIDATE_EXERCISE,c)
-	$(CMAKE) -S "$(C_TEST_SOURCE_DIR)" -B "$(C_TEST_BUILD_DIR)" -DBUILD_TESTING=ON
-	$(CMAKE) --build "$(C_TEST_BUILD_DIR)"
-	$(CTEST) --test-dir "$(C_TEST_BUILD_DIR)" --output-on-failure
-
-test-cpp:
-	$(call VALIDATE_EXERCISE,cpp)
-	$(CMAKE) -S "$(CPP_TEST_SOURCE_DIR)" -B "$(CPP_TEST_BUILD_DIR)" -DBUILD_TESTING=ON
-	$(CMAKE) --build "$(CPP_TEST_BUILD_DIR)"
-	$(CTEST) --test-dir "$(CPP_TEST_BUILD_DIR)" --output-on-failure
+test-c test-cpp: test-%:
+	$(call VALIDATE_EXERCISE,$*)
+	$(CMAKE) -S "$(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/$*,.)" -B "build/$*/test$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" -DBUILD_TESTING=ON
+	$(CMAKE) --build "build/$*/test$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))"
+	$(CTEST) --test-dir "build/$*/test$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" --output-on-failure
