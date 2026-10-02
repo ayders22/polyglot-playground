@@ -4,7 +4,7 @@ CTEST ?= ctest
 CLANG_FORMAT ?= clang-format
 CLANG_TIDY ?= clang-tidy
 
-LANGUAGES := rs
+LANGUAGES := rs c cpp
 
 BENCHMARK_TARGETS := benchmark $(addprefix benchmark-,$(LANGUAGES))
 CLEAN_TARGETS := clean $(addprefix clean-,$(LANGUAGES))
@@ -27,6 +27,14 @@ C_LINT_BUILD_ROOT := ${C_BUILD_ROOT}/lint
 C_EXERCISES := $(sort $(shell find playground -type d -name c))
 C_SOURCES := $(sort $(shell find ${C_EXERCISES} -type f -path '*/src/*.c'))
 C_FILES := $(sort $(shell find ${C_EXERCISES} -type f \( -name '*.c' -o -name '*.cc' -o -name '*.h' \)))
+
+CPP_BUILD_ROOT := build/cpp
+CPP_BENCHMARK_BUILD_ROOT := ${CPP_BUILD_ROOT}/benchmark
+CPP_TEST_BUILD_ROOT := ${CPP_BUILD_ROOT}/test
+CPP_LINT_BUILD_ROOT := ${CPP_BUILD_ROOT}/lint
+CPP_EXERCISES := $(sort $(shell find playground -type d -name cpp))
+CPP_SOURCES := $(sort $(shell find ${CPP_EXERCISES} -type f -path '*/src/*.cpp'))
+CPP_FILES := $(sort $(shell find ${CPP_EXERCISES} -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.cxx' -o -name '*.hpp' -o -name '*.h' \)))
 
 ifneq ($(filter $(ALL_TARGETS),$(MAKECMDGOALS)),)
 EXERCISE_ARGUMENTS := $(filter-out $(ALL_TARGETS),$(MAKECMDGOALS))
@@ -59,12 +67,18 @@ endif
 SELECTED_PYTHON_EXERCISES := $(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/python,$(PYTHON_EXERCISES))
 RUST_CARGO_ARGS := $(if $(EXERCISE_GOAL),--manifest-path $(EXERCISE_DIR)/rust/Cargo.toml,--workspace)
 C_TEST_SOURCE_DIR := $(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/c,.)
+CPP_TEST_SOURCE_DIR := $(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/cpp,.)
 C_TEST_BUILD_DIR := $(if $(EXERCISE_GOAL),$(C_TEST_BUILD_ROOT)/$(EXERCISE_PATH),$(C_TEST_BUILD_ROOT))
+CPP_TEST_BUILD_DIR := $(if $(EXERCISE_GOAL),$(CPP_TEST_BUILD_ROOT)/$(EXERCISE_PATH),$(CPP_TEST_BUILD_ROOT))
 C_LINT_BUILD_DIR := $(if $(EXERCISE_GOAL),$(C_LINT_BUILD_ROOT)/$(EXERCISE_PATH),$(C_LINT_BUILD_ROOT))
+CPP_LINT_BUILD_DIR := $(if $(EXERCISE_GOAL),$(CPP_LINT_BUILD_ROOT)/$(EXERCISE_PATH),$(CPP_LINT_BUILD_ROOT))
 C_BENCHMARK_BUILD_DIR := $(if $(EXERCISE_GOAL),$(C_BENCHMARK_BUILD_ROOT)/$(EXERCISE_PATH),$(C_BENCHMARK_BUILD_ROOT))
+CPP_BENCHMARK_BUILD_DIR := $(if $(EXERCISE_GOAL),$(CPP_BENCHMARK_BUILD_ROOT)/$(EXERCISE_PATH),$(CPP_BENCHMARK_BUILD_ROOT))
 
 C_BENCHMARK_CMAKE_ARGS := -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_BENCHMARKING=ON -DEXERCISE_PATH="$(EXERCISE_PATH)"
+CPP_BENCHMARK_CMAKE_ARGS := -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_BENCHMARKING=ON -DEXERCISE_PATH="$(EXERCISE_PATH)"
 C_LINT_CMAKE_ARGS := -DBUILD_TESTING=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+CPP_LINT_CMAKE_ARGS := -DBUILD_TESTING=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 define PREPARE_PYTHON
 @if [ ! -x "$(PYTHON_BIN)" ]; then \
@@ -83,7 +97,7 @@ endef
 
 .PHONY: $(ALL_TARGETS)
 
-bench: bench-rs benhc-py bench-c
+bench: bench-rs bench-py bench-c bench-cpp
 
 bench-rs:
 	$(call VALIDATE_EXERCISE,rust)
@@ -104,7 +118,13 @@ bench-c:
 	$(CMAKE) --build "$(C_BENCHMARK_BUILD_DIR)" --config Release
 	$(CTEST) --test-dir "$(C_BENCHMARK_BUILD_DIR)" --build-config Release --label-regex benchmark --verbose
 
-clean: clean-rs clean-py clean-c
+bench-cpp:
+	$(call VALIDATE_EXERCISE,cpp)
+	$(CMAKE) -S . -B "$(CPP_BENCHMARK_BUILD_DIR)" $(CPP_BENCHMARK_CMAKE_ARGS)
+	$(CMAKE) --build "$(CPP_BENCHMARK_BUILD_DIR)" --config Release
+	$(CTEST) --test-dir "$(CPP_BENCHMARK_BUILD_DIR)" --build-config Release --label-regex benchmark --verbose
+
+clean: clean-rs clean-py clean-c clean-cpp
 	rm -rf target
 
 clean-rs:
@@ -117,6 +137,9 @@ clean-py:
 clean-c:
 	rm -rf $(C_BUILD_ROOT)
 
+clean-cpp:
+	rm -rf $(CPP_BUILD_ROOT)
+
 format-rs:
 	cargo fmt --all
 
@@ -127,6 +150,10 @@ format-py:
 format-c:
 	$(call REQUIRE_TOOL,$(CLANG_FORMAT))
 	$(CLANG_FORMAT) -i $(C_FILES)
+
+format-cpp:
+	$(call REQUIRE_TOOL,$(CLANG_FORMAT))
+	$(CLANG_FORMAT) -i $(CPP_FILES)
 
 lint-rs:
 	cargo clippy --workspace --all-targets --all-features -- -D warnings
@@ -141,7 +168,13 @@ lint-c:
 	$(CMAKE) --build "$(C_LINT_BUILD_DIR)"
 	$(CLANG_TIDY) --warnings-as-errors='*' -p $(C_LINT_BUILD_DIR) $(C_SOURCES)
 
-test: test-rs test-py test-c
+lint-cpp:
+	$(call REQUIRE_TOOL,$(CLANG_TIDY))
+	$(CMAKE) -S . -B "$(CPP_LINT_BUILD_DIR)" $(CPP_LINT_CMAKE_ARGS)
+	$(CMAKE) --build "$(CPP_LINT_BUILD_DIR)"
+	$(CLANG_TIDY) --warnings-as-errors='*' -p $(CPP_LINT_BUILD_DIR) $(CPP_SOURCES)
+
+test: test-rs test-py test-c test-cpp
 
 test-rs:
 	$(call VALIDATE_EXERCISE,rust)
@@ -159,3 +192,9 @@ test-c:
 	$(CMAKE) -S "$(C_TEST_SOURCE_DIR)" -B "$(C_TEST_BUILD_DIR)" -DBUILD_TESTING=ON
 	$(CMAKE) --build "$(C_TEST_BUILD_DIR)"
 	$(CTEST) --test-dir "$(C_TEST_BUILD_DIR)" --output-on-failure
+
+test-cpp:
+	$(call VALIDATE_EXERCISE,cpp)
+	$(CMAKE) -S "$(CPP_TEST_SOURCE_DIR)" -B "$(CPP_TEST_BUILD_DIR)" -DBUILD_TESTING=ON
+	$(CMAKE) --build "$(CPP_TEST_BUILD_DIR)"
+	$(CTEST) --test-dir "$(CPP_TEST_BUILD_DIR)" --output-on-failure
