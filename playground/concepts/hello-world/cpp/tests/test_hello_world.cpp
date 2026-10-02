@@ -2,7 +2,8 @@
 
 #include <cassert>
 
-int main(void) {
+int main(void)
+{
   assert(hello_world() == 42);
   return 0;
 }

@@ -10,7 +10,8 @@ namespace {
 
 constexpr std::size_t value_count = 10'000;
 
-std::array<int, value_count> make_values() {
+std::array<int, value_count> make_values()
+{
   std::array<int, value_count> values{};
 
   for (std::size_t i = 0; i < values.size(); ++i) {
@@ -20,7 +21,8 @@ std::array<int, value_count> make_values() {
   return values;
 }
 
-template <auto implm> void benchmark_min_max(benchmark::State &state) {
+template <auto implm> void benchmark_min_max(benchmark::State &state)
+{
   const auto values = make_values();
 
   for ([[maybe_unused]] auto iteration : state) {

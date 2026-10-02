@@ -2,7 +2,8 @@
 
 #include <cassert>
 
-int main(void) {
+int main(void)
+{
   int values[] = {3, 1, 4, 1, 5, 9, 2, 6, 5};
 
   int minimum = 0;

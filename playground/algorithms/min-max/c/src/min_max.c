@@ -1,7 +1,8 @@
 #include "min_max.h"
 
 bool find_min_max_builtin(const int *values, size_t count, int *minimum,
-                          int *maximum) {
+                          int *maximum)
+{
   if (count == 0) {
     return false;
   }
@@ -21,7 +22,8 @@ bool find_min_max_builtin(const int *values, size_t count, int *minimum,
 }
 
 bool find_min_max_manual(const int *values, size_t count, int *minimum,
-                         int *maximum) {
+                         int *maximum)
+{
   if (count == 0) {
     return false;
   }
