@@ -72,6 +72,13 @@ fi
 fi
 endef
 
+define REQUIRE_TOOL
+@if ! command -v "$(1)" >/dev/null 2>&1; then \
+	echo "Required tool '$(1)' was not found" >&2; \
+	exit 2; \
+fi
+endef
+
 .PHONY: $(ALL_TARGETS)
 
 bench: bench-rs bench-py bench-c bench-cpp
