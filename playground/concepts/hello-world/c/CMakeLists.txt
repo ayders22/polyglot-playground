@@ -1,7 +1,7 @@
 include("${CMAKE_CURRENT_LIST_DIR}/../../../../cmake/PlaygroundTargets.cmake")
 playground_setup_project(C)
 
-playground_add_library(11 src/hello_world.c)
+playground_add_library(src/hello_world.c)
 
 if(NOT BUILD_TESTING)
     return()
