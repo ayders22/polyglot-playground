@@ -24,20 +24,27 @@ function(playground_get_language_name output_variable)
     set(${output_variable} "${language_name}" PARENT_SCOPE)
 endfunction()
 
-function(playground_add_library source)
+function(playground_add_library)
     playground_get_language_name(language)
     playground_get_target_prefix(target_prefix)
     string(TOUPPER "${language}" language_upper)
 
     if(language STREQUAL "c")
         set(standard 11)
+        set(source_extension c)
     elseif(language STREQUAL "cxx")
         set(standard 17)
+        set(source_extension cpp)
     else()
         message(FATAL_ERROR "Unsupported library language: ${language}")
     endif()
 
-    add_library(${target_prefix} STATIC ${source})
+    file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.${source_extension}")
+    if(NOT sources)
+        message(FATAL_ERROR "No ${language} library sources found in ${CMAKE_CURRENT_SOURCE_DIR}/src")
+    endif()
+
+    add_library(${target_prefix} STATIC ${sources})
     target_include_directories(${target_prefix} PUBLIC include)
     target_compile_features(${target_prefix} PUBLIC ${language}_std_${standard})
     target_compile_options(${target_prefix} PRIVATE ${PLAYGROUND_WARNINGS})
@@ -54,11 +61,14 @@ endfunction()
 function(playground_add_test source)
     playground_get_target_prefix(target_prefix)
     set(test_target "${target_prefix}_tests")
-    file(STRINGS
-        "${CMAKE_CURRENT_SOURCE_DIR}/${source}"
-        test_case_definitions
-        REGEX "^[ \t]*(static[ \t]+)?void[ \t]+test_[A-Za-z0-9_]+[ \t]*\\("
-    )
+    foreach(test_source IN LISTS source)
+        file(STRINGS
+            "${CMAKE_CURRENT_SOURCE_DIR}/${test_source}"
+            source_test_case_definitions
+            REGEX "^[ \t]*(static[ \t]+)?void[ \t]+test_[A-Za-z0-9_]+[ \t]*\\("
+        )
+        list(APPEND test_case_definitions ${source_test_case_definitions})
+    endforeach()
 
     add_executable(${test_target} ${source})
     target_link_libraries(${test_target} PRIVATE ${target_prefix} ${ARGN})
@@ -80,7 +90,26 @@ function(playground_add_test source)
     endforeach()
 endfunction()
 
-function(playground_add_unity_test source)
+function(playground_add_unity_test)
+    playground_get_language_name(language)
+    if(language STREQUAL "c")
+        set(source_extension c)
+    elseif(language STREQUAL "cxx")
+        set(source_extension cpp)
+    else()
+        message(FATAL_ERROR "Unsupported test language: ${language}")
+    endif()
+
+    file(
+        GLOB_RECURSE test_sources
+        CONFIGURE_DEPENDS
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.${source_extension}"
+    )
+    if(NOT test_sources)
+        message(FATAL_ERROR "No ${language} Unity test sources found in ${CMAKE_CURRENT_SOURCE_DIR}/tests")
+    endif()
+
     if(NOT TARGET unity::framework)
         include(FetchContent)
 
@@ -92,7 +121,7 @@ function(playground_add_unity_test source)
         FetchContent_MakeAvailable(unity)
     endif()
 
-    playground_add_test(${source} unity::framework)
+    playground_add_test("${test_sources}" unity::framework)
 endfunction()
 
 function(playground_add_benchmark test_name)
