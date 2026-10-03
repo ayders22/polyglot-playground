@@ -20,10 +20,10 @@ PYTEST := $(PYTHON_VENV)/bin/pytest
 RUFF := $(PYTHON_VENV)/bin/ruff
 PYTHON_EXERCISES := $(sort $(shell find playground -type d -name python))
 
-C_SOURCES := $(sort $(shell find playground -type f -path '*/c/src/*.c'))
+C_SOURCES := $(sort $(shell find playground -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' \)))
 C_FILES := $(sort $(shell find playground -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' -o -path '*/c/*.h' \)))
 
-CPP_SOURCES := $(sort $(shell find playground -type f -path '*/cpp/src/*.cpp'))
+CPP_SOURCES := $(sort $(shell find playground -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' \)))
 CPP_FILES := $(sort $(shell find playground -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' -o -path '*/cpp/*.hpp' -o -path '*/cpp/*.h' \)))
 
 EXERCISE_TASKS := $(filter $(ALL_TARGETS),$(MAKECMDGOALS))
@@ -135,7 +135,7 @@ lint-py:
 
 lint-c lint-cpp: lint-%:
 	$(call REQUIRE_TOOL,$(CLANG_TIDY))
-	$(CMAKE) -S . -B "build/$*/lint$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" -DBUILD_TESTING=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+	$(CMAKE) -S . -B "build/$*/lint$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" -DBUILD_TESTING=ON -DBUILD_BENCHMARKING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 	$(CMAKE) --build "build/$*/lint$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))"
 	$(CLANG_TIDY) --warnings-as-errors='*' -p "build/$*/lint$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" $(if $(filter c,$*),$(C_SOURCES),$(CPP_SOURCES))
 
