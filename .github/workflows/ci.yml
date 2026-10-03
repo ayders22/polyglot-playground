@@ -5,14 +5,20 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -29,6 +35,7 @@ jobs:
             lint: make lint-rs
             test: make test-rs
             benchmark: make bench-rs
+            cache: cargo
 
           - name: Python
             prepare: |
@@ -41,6 +48,8 @@ jobs:
             lint: make lint-py
             test: make test-py
             benchmark: make bench-py
+            cache: pip
+            python-version: "3.12"
 
           - name: C
             prepare: |
@@ -53,6 +62,7 @@ jobs:
             lint: make lint-c
             test: make test-c
             benchmark: make bench-c
+            cache: none
 
           - name: C++
             prepare: |
@@ -65,9 +75,41 @@ jobs:
             lint: make lint-cpp
             test: make test-cpp
             benchmark: make bench-cpp
+            cache: none
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Set up Python
+        if: matrix.python-version != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Cache Cargo dependencies
+        if: matrix.cache == 'cargo'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.name }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.name }}-cargo-
+
+      - name: Cache Python environment
+        if: matrix.cache == 'pip'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            .venv
+          key: ${{ runner.os }}-${{ matrix.name }}-pip-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.name }}-pip-
 
       - name: Prepare
         run: ${{ matrix.prepare }}
@@ -86,3 +128,13 @@ jobs:
 
       - name: Benchmark
         run: ${{ matrix.benchmark }}
+
+  all-check:
+    name: All check
+    if: ${{ always() }}
+    needs: [check]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify results
+        run: test "${{ needs.check.result }}" = "success"
