@@ -26,14 +26,15 @@ C_FILES := $(sort $(shell find playground -type f \( -path '*/c/*.c' -o -path '*
 CPP_SOURCES := $(sort $(shell find playground -type f -path '*/cpp/src/*.cpp'))
 CPP_FILES := $(sort $(shell find playground -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' -o -path '*/cpp/*.hpp' -o -path '*/cpp/*.h' \)))
 
-ifneq ($(filter $(ALL_TARGETS),$(MAKECMDGOALS)),)
-EXERCISE_ARGUMENTS := $(filter-out $(ALL_TARGETS),$(MAKECMDGOALS))
+EXERCISE_TASKS := $(filter $(ALL_TARGETS),$(MAKECMDGOALS))
+EXERCISE_ARGUMENTS := $(if $(EXERCISE_TASKS),$(filter-out $(ALL_TARGETS),$(MAKECMDGOALS)))
 ifneq ($(word 2, $(EXERCISE_ARGUMENTS)),)
 $(error Only one exercise can be specified at a time)
 endif
 EXERCISE_GOAL := $(firstword $(EXERCISE_ARGUMENTS))
 EXERCISE_PATH := $(patsubst playground/%,%,$(EXERCISE_GOAL))
 EXERCISE_DIR := playground/$(EXERCISE_PATH)
+
 ifneq ($(EXERCISE_GOAL),)
 .PHONY: $(EXERCISE_GOAL)
 $(EXERCISE_GOAL):
@@ -51,7 +52,6 @@ fi
 	echo "Exercise '$(EXERCISE_PATH)' has no $(1) implementation" >&2; exit 2; \
 fi
 endef
-endif
 endif
 
 SELECTED_PYTHON_EXERCISES := $(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/python,$(PYTHON_EXERCISES))
