@@ -5,28 +5,12 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     include(CTest)
 endif()
 
-add_library(hello_world_c STATIC src/hello_world.c)
-target_include_directories(hello_world_c PUBLIC include)
-target_compile_features(hello_world_c PUBLIC c_std_11)
-set_target_properties(hello_world_c PROPERTIES C_EXTENSIONS OFF)
+include("${CMAKE_CURRENT_LIST_DIR}/../../../../cmake/PlaygroundTargets.cmake")
 
-set(HELLO_WORLD_WARNINGS -Wall -Wextra -Wpedantic -Werror)
-target_compile_options(hello_world_c PRIVATE ${HELLO_WORLD_WARNINGS})
+playground_add_library(hello_world_c c 11 src/hello_world.c)
 
 if(NOT BUILD_TESTING)
     return()
 endif()
 
-include(FetchContent)
-
-FetchContent_Declare(
-    unity
-    GIT_REPOSITORY https://github.com/ThrowTheSwitch/Unity.git
-    GIT_TAG v2.7.0
-)
-FetchContent_MakeAvailable(unity)
-
-add_executable(hello_world_c_tests tests/test_hello_world.c)
-target_link_libraries(hello_world_c_tests PRIVATE hello_world_c unity::framework)
-target_compile_options(hello_world_c_tests PRIVATE ${HELLO_WORLD_WARNINGS})
-add_test(NAME hello-world-c COMMAND hello_world_c_tests)
+playground_add_unity_test(hello_world_c_tests tests/test_hello_world.c hello_world_c hello-world-c)
