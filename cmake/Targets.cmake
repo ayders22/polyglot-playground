@@ -63,7 +63,7 @@ endfunction()
 
 function(get_benchmark_source output_variable)
     get_project_name(project_name)
-    set(${output_variable} "${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/${project_name}.cc" PARENT_SCOPE)
+    set(${output_variable} "${CMAKE_CURRENT_SOURCE_DIR}/benches/${project_name}.cc" PARENT_SCOPE)
 endfunction()
 
 function(add_test_target source)

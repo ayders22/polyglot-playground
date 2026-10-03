@@ -91,8 +91,8 @@ bench-py:
 	$(call VALIDATE_EXERCISE,python)
 	$(PREPARE_PYTHON)
 	@set -e; for dir in $(SELECTED_PYTHON_EXERCISES); do \
-		if [ -d "$$dir/benchmarks" ]; then \
-			PYTHONPATH="$$dir/src" $(PYTEST) "$$dir/benchmarks" --benchmark-only; \
+		if [ -d "$$dir/benches" ]; then \
+			PYTHONPATH="$$dir/src" $(PYTEST) "$$dir/benches" --benchmark-only; \
 		fi; \
 	done
 
