@@ -7,25 +7,29 @@ include(CTest)
 option(BUILD_BENCHMARKING "Build benchmarks" OFF)
 set(EXERCISE_PATH "" CACHE STRING "Exercise path relative to playground")
 
+set(PLAYGROUND_DIR "${CMAKE_CURRENT_SOURCE_DIR}/playground")
+set(C_FAMILY_LANGUAGES c cpp)
+set(EXERCISE_CMAKELISTS)
+
 if(EXERCISE_PATH)
-    set(C_EXERCISE_FILES "")
-    foreach(language IN ITEMS c cpp)
-        set(language_exercise_file "playground/${EXERCISE_PATH}/${language}/CMakeLists.txt")
-        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${language_exercise_file}")
-            list(APPEND C_EXERCISE_FILES "${language_exercise_file}")
+    foreach(language IN LISTS C_FAMILY_LANGUAGES)
+        set(exercise_cmakelists "${PLAYGROUND_DIR}/${EXERCISE_PATH}/${language}/CMakeLists.txt")
+        if(EXISTS "${exercise_cmakelists}")
+            list(APPEND EXERCISE_CMAKELISTS "${exercise_cmakelists}")
         endif()
     endforeach()
 
-    if(NOT C_EXERCISE_FILES)
+    if(NOT EXERCISE_CMAKELISTS)
         message(FATAL_ERROR "No C or C++ implementation for exercise: ${EXERCISE_PATH}")
     endif()
 else()
     file(
-        GLOB_RECURSE C_EXERCISE_FILES
+        GLOB_RECURSE EXERCISE_CMAKELISTS
         CONFIGURE_DEPENDS
         RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/playground/*/CMakeLists.txt")
-    list(FILTER C_EXERCISE_FILES INCLUDE REGEX "/(c|cpp)/CMakeLists\\.txt$")
+        "${PLAYGROUND_DIR}/*/CMakeLists.txt")
+    string(JOIN "|" C_FAMILY_LANGUAGE_PATTERN ${C_FAMILY_LANGUAGES})
+    list(FILTER EXERCISE_CMAKELISTS INCLUDE REGEX "/(${C_FAMILY_LANGUAGE_PATTERN})/CMakeLists\\.txt$")
 endif()
 
 if(BUILD_BENCHMARKING)
@@ -44,7 +48,7 @@ if(BUILD_BENCHMARKING)
     FetchContent_MakeAvailable(google_benchmark)
 endif()
 
-foreach(c_exercise_file IN LISTS C_EXERCISE_FILES)
-    cmake_path(GET c_exercise_file PARENT_PATH c_exercise_dir)
-    add_subdirectory("${c_exercise_dir}")
+foreach(exercise_cmakelists IN LISTS EXERCISE_CMAKELISTS)
+    cmake_path(GET exercise_cmakelists PARENT_PATH exercise_dir)
+    add_subdirectory("${exercise_dir}")
 endforeach()
