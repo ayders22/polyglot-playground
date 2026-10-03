@@ -20,13 +20,11 @@ PYTEST := $(PYTHON_VENV)/bin/pytest
 RUFF := $(PYTHON_VENV)/bin/ruff
 PYTHON_EXERCISES := $(sort $(shell find playground -type d -name python))
 
-C_EXERCISES := $(sort $(shell find playground -type d -name c))
-C_SOURCES := $(sort $(shell find ${C_EXERCISES} -type f -path '*/src/*.c'))
-C_FILES := $(sort $(shell find ${C_EXERCISES} -type f \( -name '*.c' -o -name '*.cc' -o -name '*.h' \)))
+C_SOURCES := $(sort $(shell find playground -type f -path '*/c/src/*.c'))
+C_FILES := $(sort $(shell find playground -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' -o -path '*/c/*.h' \)))
 
-CPP_EXERCISES := $(sort $(shell find playground -type d -name cpp))
-CPP_SOURCES := $(sort $(shell find ${CPP_EXERCISES} -type f -path '*/src/*.cpp'))
-CPP_FILES := $(sort $(shell find ${CPP_EXERCISES} -type f \( -name '*.cpp' -o -name '*.cc' -o -name '*.cxx' -o -name '*.hpp' -o -name '*.h' \)))
+CPP_SOURCES := $(sort $(shell find playground -type f -path '*/cpp/src/*.cpp'))
+CPP_FILES := $(sort $(shell find playground -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' -o -path '*/cpp/*.hpp' -o -path '*/cpp/*.h' \)))
 
 ifneq ($(filter $(ALL_TARGETS),$(MAKECMDGOALS)),)
 EXERCISE_ARGUMENTS := $(filter-out $(ALL_TARGETS),$(MAKECMDGOALS))
@@ -58,19 +56,6 @@ endif
 
 SELECTED_PYTHON_EXERCISES := $(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/python,$(PYTHON_EXERCISES))
 RUST_CARGO_ARGS := $(if $(EXERCISE_GOAL),--manifest-path $(EXERCISE_DIR)/rust/Cargo.toml,--workspace)
-C_TEST_SOURCE_DIR := $(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/c,.)
-CPP_TEST_SOURCE_DIR := $(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/cpp,.)
-C_TEST_BUILD_DIR := $(if $(EXERCISE_GOAL),$(C_TEST_BUILD_ROOT)/$(EXERCISE_PATH),$(C_TEST_BUILD_ROOT))
-CPP_TEST_BUILD_DIR := $(if $(EXERCISE_GOAL),$(CPP_TEST_BUILD_ROOT)/$(EXERCISE_PATH),$(CPP_TEST_BUILD_ROOT))
-C_LINT_BUILD_DIR := $(if $(EXERCISE_GOAL),$(C_LINT_BUILD_ROOT)/$(EXERCISE_PATH),$(C_LINT_BUILD_ROOT))
-CPP_LINT_BUILD_DIR := $(if $(EXERCISE_GOAL),$(CPP_LINT_BUILD_ROOT)/$(EXERCISE_PATH),$(CPP_LINT_BUILD_ROOT))
-C_BENCHMARK_BUILD_DIR := $(if $(EXERCISE_GOAL),$(C_BENCHMARK_BUILD_ROOT)/$(EXERCISE_PATH),$(C_BENCHMARK_BUILD_ROOT))
-CPP_BENCHMARK_BUILD_DIR := $(if $(EXERCISE_GOAL),$(CPP_BENCHMARK_BUILD_ROOT)/$(EXERCISE_PATH),$(CPP_BENCHMARK_BUILD_ROOT))
-
-C_BENCHMARK_CMAKE_ARGS := -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_BENCHMARKING=ON -DEXERCISE_PATH="$(EXERCISE_PATH)"
-CPP_BENCHMARK_CMAKE_ARGS := -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_BENCHMARKING=ON -DEXERCISE_PATH="$(EXERCISE_PATH)"
-C_LINT_CMAKE_ARGS := -DBUILD_TESTING=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-CPP_LINT_CMAKE_ARGS := -DBUILD_TESTING=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 define PREPARE_PYTHON
 @if [ ! -x "$(PYTHON_BIN)" ]; then \
