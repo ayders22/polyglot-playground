@@ -7,10 +7,10 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/../../../../cmake/PlaygroundTargets.cmake")
 
-playground_add_library(c 11 src/min_max.c)
+playground_add_library(11 src/min_max.c)
 
 if(BUILD_BENCHMARKING)
-    playground_add_benchmark(benchmarks/min_max.cc min-max-c-benchmark)
+    playground_add_benchmark(min-max-c-benchmark)
 endif()
 
 if(NOT BUILD_TESTING)
