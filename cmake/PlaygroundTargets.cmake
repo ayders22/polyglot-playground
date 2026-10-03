@@ -91,6 +91,10 @@ function(playground_add_test source)
 endfunction()
 
 function(playground_add_unity_test)
+    if(NOT BUILD_TESTING)
+        return()
+    endif()
+
     playground_get_language_name(language)
     if(language STREQUAL "c")
         set(source_extension c)

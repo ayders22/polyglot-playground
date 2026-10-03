@@ -3,8 +3,4 @@ playground_setup_project(CXX)
 
 playground_add_library()
 
-if(NOT BUILD_TESTING)
-    return()
-endif()
-
 playground_add_unity_test()

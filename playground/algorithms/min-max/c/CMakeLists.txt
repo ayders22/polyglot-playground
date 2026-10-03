@@ -7,8 +7,4 @@ if(BUILD_BENCHMARKING)
     playground_add_benchmark(min-max-c-benchmark)
 endif()
 
-if(NOT BUILD_TESTING)
-    return()
-endif()
-
 playground_add_unity_test()
