@@ -1,6 +1,8 @@
 #include "min_max.h"
 #include "unity.h"
 
+#include <string.h>
+
 void setUp(void)
 {
   // This function is called before each test case
@@ -33,10 +35,22 @@ static void test_find_min_max_manual(void)
   TEST_ASSERT_EQUAL_INT(9, maximum);
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+  if (argc > 2) {
+    return 1;
+  }
+
   UNITY_BEGIN();
-  RUN_TEST(test_find_min_max_builtin);
-  RUN_TEST(test_find_min_max_manual);
+  if (argc == 1 || strcmp(argv[1], "test_find_min_max_builtin") == 0) {
+    RUN_TEST(test_find_min_max_builtin);
+  }
+  if (argc == 1 || strcmp(argv[1], "test_find_min_max_manual") == 0) {
+    RUN_TEST(test_find_min_max_manual);
+  }
+  if (argc == 2 && strcmp(argv[1], "test_find_min_max_builtin") != 0 &&
+      strcmp(argv[1], "test_find_min_max_manual") != 0) {
+    return 1;
+  }
   return UNITY_END();
 }

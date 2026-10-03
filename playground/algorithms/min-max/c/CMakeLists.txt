@@ -7,14 +7,14 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/../../../../cmake/PlaygroundTargets.cmake")
 
-playground_add_library(min_max_c c 11 src/min_max.c)
+playground_add_library(c 11 src/min_max.c)
 
 if(BUILD_BENCHMARKING)
-    playground_add_benchmark(min_max_c_benchmarks benchmarks/min_max.cc min_max_c min-max-c-benchmark)
+    playground_add_benchmark(benchmarks/min_max.cc min-max-c-benchmark)
 endif()
 
 if(NOT BUILD_TESTING)
     return()
 endif()
 
-playground_add_unity_test(min_max_c_tests tests/test_min_max.c min_max_c min-max-c)
+playground_add_unity_test(tests/test_min_max.c)

@@ -7,10 +7,10 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/../../../../cmake/PlaygroundTargets.cmake")
 
-playground_add_library(hello_world_cpp cxx 17 src/hello_world.cpp)
+playground_add_library(cxx 17 src/hello_world.cpp)
 
 if(NOT BUILD_TESTING)
     return()
 endif()
 
-playground_add_test(hello_world_cpp_tests tests/test_hello_world.cpp hello_world_cpp hello-world-cpp)
+playground_add_test(tests/test_hello_world.cpp)

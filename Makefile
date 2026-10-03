@@ -154,6 +154,6 @@ test-py:
 
 test-c test-cpp: test-%:
 	$(call VALIDATE_EXERCISE,$*)
-	$(CMAKE) -S "$(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/$*,.)" -B "build/$*/test$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" -DBUILD_TESTING=ON
+	$(CMAKE) -S "$(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/$*,.)" -B "build/$*/test$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" -DBUILD_TESTING=ON $(if $(EXERCISE_GOAL),,-DC_FAMILY_LANGUAGE=$*)
 	$(CMAKE) --build "build/$*/test$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))"
 	$(CTEST) --test-dir "build/$*/test$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" --output-on-failure

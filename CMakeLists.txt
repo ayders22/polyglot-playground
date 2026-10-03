@@ -9,7 +9,15 @@ set(EXERCISE_PATH "" CACHE STRING "Exercise path relative to playground")
 
 set(PLAYGROUND_DIR "${CMAKE_CURRENT_SOURCE_DIR}/playground")
 set(C_FAMILY_LANGUAGES c cpp)
+set(C_FAMILY_LANGUAGE "" CACHE STRING "C-family implementation language to build (c or cpp)")
 set(EXERCISE_CMAKELISTS)
+
+if(C_FAMILY_LANGUAGE)
+    if(NOT C_FAMILY_LANGUAGE IN_LIST C_FAMILY_LANGUAGES)
+        message(FATAL_ERROR "Unsupported C-family language: ${C_FAMILY_LANGUAGE}")
+    endif()
+    set(C_FAMILY_LANGUAGES "${C_FAMILY_LANGUAGE}")
+endif()
 
 if(EXERCISE_PATH)
     foreach(language IN LISTS C_FAMILY_LANGUAGES)

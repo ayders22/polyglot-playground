@@ -7,10 +7,10 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/../../../../cmake/PlaygroundTargets.cmake")
 
-playground_add_library(min_max_cpp cxx 17 src/min_max.cpp)
+playground_add_library(cxx 17 src/min_max.cpp)
 
 if(NOT BUILD_TESTING)
     return()
 endif()
 
-playground_add_test(min_max_cpp_tests tests/test_min_max.cpp min_max_cpp min-max-cpp)
+playground_add_test(tests/test_min_max.cpp)
