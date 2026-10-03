@@ -1,11 +1,19 @@
 #include "hello_world.h"
+#include "unity.h"
 
-#include <cassert>
 #include <cstring>
+
+void setUp(void)
+{
+}
+
+void tearDown(void)
+{
+}
 
 static void test_hello_world_returns_42()
 {
-  assert(hello_world() == 42);
+  TEST_ASSERT_EQUAL_INT(42, hello_world());
 }
 
 int main(int argc, char *argv[])
@@ -15,6 +23,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  test_hello_world_returns_42();
-  return 0;
+  UNITY_BEGIN();
+  RUN_TEST(test_hello_world_returns_42);
+  return UNITY_END();
 }

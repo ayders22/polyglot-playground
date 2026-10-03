@@ -7,4 +7,4 @@ if(NOT BUILD_TESTING)
     return()
 endif()
 
-playground_add_test(tests/test_hello_world.cpp)
+playground_add_unity_test()
