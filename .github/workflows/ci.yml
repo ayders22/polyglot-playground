@@ -10,133 +10,79 @@ permissions:
   contents: read
 
 jobs:
-  rust:
-    name: Rust
+  check:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Rust
+            prepare: |
+              rustup update stable
+              rustup default stable
+              rustup component add rustfmt clippy
+            clean: make clean-rs
+            format: |
+              make format-rs
+              git diff --exit-code
+            lint: make lint-rs
+            test: make test-rs
+            benchmark: make bench-rs
+
+          - name: Python
+            prepare: |
+              sudo apt-get update
+              sudo apt-get install -y python3 python3-venv python3-pip
+            clean: make clean-py
+            format: |
+              make format-py
+              git diff --exit-code
+            lint: make lint-py
+            test: make test-py
+            benchmark: make bench-py
+
+          - name: C
+            prepare: |
+              sudo apt-get update
+              sudo apt-get install -y build-essential cmake clang-format clang-tidy
+            clean: make clean-c
+            format: |
+              make format-c
+              git diff --exit-code
+            lint: make lint-c
+            test: make test-c
+            benchmark: make bench-c
+
+          - name: C++
+            prepare: |
+              sudo apt-get update
+              sudo apt-get install -y build-essential cmake clang-format clang-tidy
+            clean: make clean-cpp
+            format: |
+              make format-cpp
+              git diff --exit-code
+            lint: make lint-cpp
+            test: make test-cpp
+            benchmark: make bench-cpp
 
     steps:
       - uses: actions/checkout@v7
 
       - name: Prepare
-        run: |
-          rustup update stable
-          rustup default stable
-          rustup component add rustfmt clippy
+        run: ${{ matrix.prepare }}
 
       - name: Clean
-        run: make clean-rs
+        run: ${{ matrix.clean }}
 
       - name: Format
-        run: |
-          make format-rs
-          git diff --exit-code
+        run: ${{ matrix.format }}
 
       - name: Lint
-        run: make lint-rs
+        run: ${{ matrix.lint }}
 
       - name: Test
-        run: make test-rs
+        run: ${{ matrix.test }}
 
       - name: Benchmark
-        run: make bench-rs
-
-  python:
-    name: Python
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Prepare
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3 python3-venv python3-pip
-
-      - name: Clean
-        run: make clean-py
-
-      - name: Format
-        run: |
-          make format-py
-          git diff --exit-code
-
-      - name: Lint
-        run: make lint-py
-
-      - name: Test
-        run: make test-py
-
-      - name: Benchmark
-        run: make bench-py
-
-  c:
-    name: C
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Prepare
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake clang-format clang-tidy
-
-      - name: Clean
-        run: make clean-c
-
-      - name: Format
-        run: |
-          make format-c
-          git diff --exit-code
-
-      - name: Lint
-        run: make lint-c
-
-      - name: Test
-        run: make test-c
-
-      - name: Benchmark
-        run: make bench-c
-
-  cpp:
-    name: C++
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Prepare
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake clang-format clang-tidy
-
-      - name: Clean
-        run: make clean-cpp
-
-      - name: Format
-        run: |
-          make format-cpp
-          git diff --exit-code
-
-      - name: Lint
-        run: make lint-cpp
-
-      - name: Test
-        run: make test-cpp
-
-      - name: Benchmark
-        run: make bench-cpp
-
-  all-check:
-    name: All check
-    if: ${{ always() }}
-    needs: [rust, python, c, cpp]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Verify results
-        run: |
-          test "${{ needs.rust.result }}" = "success"
-          test "${{ needs.python.result }}" = "success"
-          test "${{ needs.c.result }}" = "success"
-          test "${{ needs.cpp.result }}" = "success"
+        run: ${{ matrix.benchmark }}
