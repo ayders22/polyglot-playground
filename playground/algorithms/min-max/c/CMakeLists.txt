@@ -3,8 +3,6 @@ playground_setup_project(C)
 
 playground_add_library()
 
-if(BUILD_BENCHMARKING)
-    playground_add_benchmark(min-max-c-benchmark)
-endif()
+playground_add_benchmark(min-max-c-benchmark)
 
 playground_add_unity_test()

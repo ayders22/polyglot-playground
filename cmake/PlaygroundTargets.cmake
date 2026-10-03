@@ -129,6 +129,10 @@ function(playground_add_unity_test)
 endfunction()
 
 function(playground_add_benchmark test_name)
+    if(NOT BUILD_BENCHMARKING)
+        return()
+    endif()
+
     playground_get_target_prefix(target_prefix)
     playground_get_benchmark_source(benchmark_source)
     set(benchmark_target "${target_prefix}_benchmarks")
