@@ -1,2 +1,2 @@
-include("${CMAKE_CURRENT_LIST_DIR}/../../../../cmake/PlaygroundTargets.cmake")
-playground_add_project()
+include("${CMAKE_CURRENT_LIST_DIR}/../../../../cmake/Targets.cmake")
+add_project()
