@@ -1,5 +1,12 @@
 set(PLAYGROUND_WARNINGS -Wall -Wextra -Wpedantic -Werror)
 
+function(playground_setup_project project_name language)
+    if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+        project(${project_name} VERSION 0.1.0 LANGUAGES ${language})
+        include(CTest)
+    endif()
+endfunction()
+
 function(playground_get_target_prefix output_variable)
     cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH exercise_directory)
     cmake_path(GET exercise_directory FILENAME exercise_name)

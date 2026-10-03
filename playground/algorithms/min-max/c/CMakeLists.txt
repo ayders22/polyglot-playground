@@ -1,11 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    project(min_max_c VERSION 0.1.0 LANGUAGES C)
-    include(CTest)
-endif()
-
 include("${CMAKE_CURRENT_LIST_DIR}/../../../../cmake/PlaygroundTargets.cmake")
+playground_setup_project(min_max_c C)
 
 playground_add_library(11 src/min_max.c)
 
