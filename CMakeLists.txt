@@ -5,7 +5,7 @@ project(polyglot_playground VERSION 0.1.0 LANGUAGES C CXX)
 include(CTest)
 
 option(BUILD_BENCHMARKING "Build benchmarks" OFF)
-set(EXERCISE_PATH "" CACHE STRING "Exercise path relative to exercises")
+set(EXERCISE_PATH "" CACHE STRING "Exercise path relative to playground")
 
 if(EXERCISE_PATH)
     set(C_EXERCISE_FILES "")
