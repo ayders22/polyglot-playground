@@ -19,6 +19,11 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      CCACHE_DIR: ~/.cache/ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
     strategy:
       fail-fast: false
       matrix:
@@ -48,13 +53,13 @@ jobs:
             lint: make lint-py
             test: make test-py
             benchmark: make bench-py
-            cache: pip
+            cache: python
             python-version: "3.12"
 
           - name: C
             prepare: |
               sudo apt-get update
-              sudo apt-get install -y build-essential cmake clang-format clang-tidy
+              sudo apt-get install -y build-essential cmake clang-format clang-tidy ccache
             clean: make clean-c
             format: |
               make format-c
@@ -62,12 +67,12 @@ jobs:
             lint: make lint-c
             test: make test-c
             benchmark: make bench-c
-            cache: none
+            cache: ccache
 
           - name: C++
             prepare: |
               sudo apt-get update
-              sudo apt-get install -y build-essential cmake clang-format clang-tidy
+              sudo apt-get install -y build-essential cmake clang-format clang-tidy ccache
             clean: make clean-cpp
             format: |
               make format-cpp
@@ -75,7 +80,7 @@ jobs:
             lint: make lint-cpp
             test: make test-cpp
             benchmark: make bench-cpp
-            cache: none
+            cache: ccache
 
     steps:
       - uses: actions/checkout@v7
@@ -100,16 +105,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.name }}-cargo-
 
-      - name: Cache Python environment
-        if: matrix.cache == 'pip'
+      - name: Cache C/C++ compiler output
+        if: matrix.cache == 'ccache'
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cache/pip
-            .venv
-          key: ${{ runner.os }}-${{ matrix.name }}-pip-${{ hashFiles('pyproject.toml') }}
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.name }}-pip-
+            ${{ runner.os }}-${{ matrix.name }}-ccache-
 
       - name: Prepare
         run: ${{ matrix.prepare }}
@@ -128,13 +131,3 @@ jobs:
 
       - name: Benchmark
         run: ${{ matrix.benchmark }}
-
-  all-check:
-    name: All check
-    if: ${{ always() }}
-    needs: [check]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Verify results
-        run: test "${{ needs.check.result }}" = "success"
