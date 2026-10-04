@@ -13,6 +13,18 @@ function(get_target_prefix output_variable)
     set(${output_variable} "${project_name}_${language_name}" PARENT_SCOPE)
 endfunction()
 
+macro(configure_standalone_project)
+    include(CTest)
+
+    option(BUILD_BENCHMARKING "Build benchmarks" OFF)
+    if(BUILD_BENCHMARKING)
+        if(NOT CMAKE_CXX_COMPILER_LOADED)
+            enable_language(CXX)
+        endif()
+        find_package(benchmark CONFIG REQUIRED)
+    endif()
+endmacro()
+
 function(get_language_settings output_language output_extension output_standard)
     cmake_path(GET CMAKE_CURRENT_SOURCE_DIR FILENAME language_name)
     if(language_name STREQUAL "cpp")
