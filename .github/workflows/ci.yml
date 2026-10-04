@@ -59,7 +59,7 @@ jobs:
           - name: C
             prepare: |
               sudo apt-get update
-              sudo apt-get install -y build-essential cmake clang-format clang-tidy ccache
+              sudo apt-get install -y build-essential cmake clang-format clang-tidy ccache libbenchmark-dev
             clean: make clean-c
             format: |
               make format-c
@@ -72,7 +72,7 @@ jobs:
           - name: C++
             prepare: |
               sudo apt-get update
-              sudo apt-get install -y build-essential cmake clang-format clang-tidy ccache
+              sudo apt-get install -y build-essential cmake clang-format clang-tidy ccache libbenchmark-dev
             clean: make clean-cpp
             format: |
               make format-cpp

@@ -42,18 +42,7 @@ endif()
 
 if(BUILD_BENCHMARKING)
     enable_testing()
-
-    include(FetchContent)
-
-    set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
-
-    FetchContent_Declare(
-        google_benchmark
-        GIT_REPOSITORY https://github.com/google/benchmark.git
-        GIT_TAG v1.9.5
-    )
-    FetchContent_MakeAvailable(google_benchmark)
+    find_package(benchmark CONFIG REQUIRED)
 endif()
 
 foreach(exercise_cmakelists IN LISTS EXERCISE_CMAKELISTS)
