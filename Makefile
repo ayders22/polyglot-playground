@@ -5,6 +5,7 @@ CLANG_FORMAT ?= clang-format
 CLANG_TIDY ?= clang-tidy
 
 LANGUAGES := rs py c cpp
+PLAYGROUND_DIR ?= playground
 
 BENCHMARK_TARGETS := bench $(addprefix bench-,$(LANGUAGES))
 CLEAN_TARGETS := clean $(addprefix clean-,$(LANGUAGES))
@@ -18,13 +19,13 @@ PYTHON_VENV := .venv
 PYTHON_BIN := $(PYTHON_VENV)/bin/python
 PYTEST := $(PYTHON_VENV)/bin/pytest
 RUFF := $(PYTHON_VENV)/bin/ruff
-PYTHON_PROJECTS := $(sort $(shell find playground -type d -name python))
+PYTHON_PROJECTS := $(sort $(shell find $(PLAYGROUND_DIR) -type d -name python))
 
-C_SOURCES := $(sort $(shell find playground -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' \)))
-C_FILES := $(sort $(shell find playground -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' -o -path '*/c/*.h' \)))
+C_SOURCES := $(sort $(shell find $(PLAYGROUND_DIR) -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' \)))
+C_FILES := $(sort $(shell find $(PLAYGROUND_DIR) -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' -o -path '*/c/*.h' \)))
 
-CPP_SOURCES := $(sort $(shell find playground -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' \)))
-CPP_FILES := $(sort $(shell find playground -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' -o -path '*/cpp/*.hpp' -o -path '*/cpp/*.h' \)))
+CPP_SOURCES := $(sort $(shell find $(PLAYGROUND_DIR) -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' \)))
+CPP_FILES := $(sort $(shell find $(PLAYGROUND_DIR) -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' -o -path '*/cpp/*.hpp' -o -path '*/cpp/*.h' \)))
 
 PROJECT_TASKS := $(filter $(ALL_TARGETS),$(MAKECMDGOALS))
 PROJECT_ARGUMENTS := $(if $(PROJECT_TASKS),$(filter-out $(ALL_TARGETS),$(MAKECMDGOALS)))
@@ -32,8 +33,8 @@ ifneq ($(word 2, $(PROJECT_ARGUMENTS)),)
   $(error Only one project can be specified at a time)
 endif
 PROJECT_GOAL := $(firstword $(PROJECT_ARGUMENTS))
-PROJECT_PATH := $(patsubst playground/%,%,$(PROJECT_GOAL))
-PROJECT_DIR := playground/$(PROJECT_PATH)
+PROJECT_PATH := $(patsubst $(PLAYGROUND_DIR)/%,%,$(PROJECT_GOAL))
+PROJECT_DIR := $(PLAYGROUND_DIR)/$(PROJECT_PATH)
 
 ifneq ($(PROJECT_GOAL),)
   .PHONY: $(PROJECT_GOAL)
@@ -43,7 +44,7 @@ ifneq ($(PROJECT_GOAL),)
   define VALIDATE_PROJECT
 @case "$(PROJECT_PATH)" in \
 	""|/*|..|../*|*/..|*/../*) \
-		echo "Project '$(PROJECT_PATH)' must be a relative path beneath playground/" >&2; exit 2 ;; \
+		echo "Project '$(PROJECT_PATH)' must be a relative path beneath $(PLAYGROUND_DIR)/" >&2; exit 2 ;; \
 	esac
 @if [ ! -d "$(PROJECT_DIR)" ]; then \
 	echo "Project '$(PROJECT_PATH)' does not exist" >&2; exit 2; \
@@ -110,7 +111,7 @@ clean-rs:
 
 clean-py:
 	rm -rf $(PYTHON_VENV) .pytest_cache .ruff_cache .benchmarks
-	find playground -type d -name __pycache__ -prune -exec rm -rf {} +
+	find $(PLAYGROUND_DIR) -type d -name __pycache__ -prune -exec rm -rf {} +
 
 clean-c clean-cpp: clean-%:
 	rm -rf build/$*
