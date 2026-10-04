@@ -1,15 +1,5 @@
 set(COMMON_WARNINGS -Wall -Wextra -Wpedantic -Werror)
 
-function(setup_project)
-    if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-        get_language_settings(language source_extension standard)
-        get_target_prefix(project_name)
-        string(TOUPPER "${language}" project_language)
-        project(${project_name} VERSION 0.1.0 LANGUAGES ${project_language})
-        include(CTest)
-    endif()
-endfunction()
-
 function(get_project_name output_variable)
     cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH project_directory)
     cmake_path(GET project_directory FILENAME project_name)
@@ -156,7 +146,6 @@ function(add_benchmark_target)
 endfunction()
 
 function(add_project)
-    setup_project()
     add_library_target()
     add_benchmark_target()
     add_unity_test_target()
