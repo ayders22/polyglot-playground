@@ -17,7 +17,7 @@ concurrency:
 jobs:
   check:
     name: ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       CCACHE_DIR: ~/.cache/ccache
@@ -91,7 +91,7 @@ jobs:
 
       - name: Set up Python
         if: matrix.python-version != ''
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -99,7 +99,7 @@ jobs:
 
       - name: Cache Cargo dependencies
         if: matrix.cache == 'cargo'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -111,7 +111,7 @@ jobs:
 
       - name: Cache C/C++ compiler output
         if: matrix.cache == 'ccache'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ccache
           key: ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.sha }}
