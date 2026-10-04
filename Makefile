@@ -103,7 +103,7 @@ bench-c bench-cpp: bench-%:
 	$(CTEST) --test-dir "build/$*/benchmark$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" --build-config Release --label-regex benchmark --verbose
 
 clean: clean-rs clean-py clean-c clean-cpp
-	rm -rf target
+	rm -rf target build
 
 clean-rs:
 	cargo clean
