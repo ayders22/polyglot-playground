@@ -18,7 +18,7 @@ PYTHON_VENV := .venv
 PYTHON_BIN := $(PYTHON_VENV)/bin/python
 PYTEST := $(PYTHON_VENV)/bin/pytest
 RUFF := $(PYTHON_VENV)/bin/ruff
-PYTHON_EXERCISES := $(sort $(shell find playground -type d -name python))
+PYTHON_PROJECTS := $(sort $(shell find playground -type d -name python))
 
 C_SOURCES := $(sort $(shell find playground -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' \)))
 C_FILES := $(sort $(shell find playground -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' -o -path '*/c/*.h' \)))
@@ -26,36 +26,36 @@ C_FILES := $(sort $(shell find playground -type f \( -path '*/c/*.c' -o -path '*
 CPP_SOURCES := $(sort $(shell find playground -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' \)))
 CPP_FILES := $(sort $(shell find playground -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' -o -path '*/cpp/*.hpp' -o -path '*/cpp/*.h' \)))
 
-EXERCISE_TASKS := $(filter $(ALL_TARGETS),$(MAKECMDGOALS))
-EXERCISE_ARGUMENTS := $(if $(EXERCISE_TASKS),$(filter-out $(ALL_TARGETS),$(MAKECMDGOALS)))
-ifneq ($(word 2, $(EXERCISE_ARGUMENTS)),)
-  $(error Only one exercise can be specified at a time)
+PROJECT_TASKS := $(filter $(ALL_TARGETS),$(MAKECMDGOALS))
+PROJECT_ARGUMENTS := $(if $(PROJECT_TASKS),$(filter-out $(ALL_TARGETS),$(MAKECMDGOALS)))
+ifneq ($(word 2, $(PROJECT_ARGUMENTS)),)
+  $(error Only one project can be specified at a time)
 endif
-EXERCISE_GOAL := $(firstword $(EXERCISE_ARGUMENTS))
-EXERCISE_PATH := $(patsubst playground/%,%,$(EXERCISE_GOAL))
-EXERCISE_DIR := playground/$(EXERCISE_PATH)
+PROJECT_GOAL := $(firstword $(PROJECT_ARGUMENTS))
+PROJECT_PATH := $(patsubst playground/%,%,$(PROJECT_GOAL))
+PROJECT_DIR := playground/$(PROJECT_PATH)
 
-ifneq ($(EXERCISE_GOAL),)
-  .PHONY: $(EXERCISE_GOAL)
-  $(EXERCISE_GOAL):
+ifneq ($(PROJECT_GOAL),)
+  .PHONY: $(PROJECT_GOAL)
+  $(PROJECT_GOAL):
 	@:
 
-  define VALIDATE_EXERCISE
-@case "$(EXERCISE_PATH)" in \
+  define VALIDATE_PROJECT
+@case "$(PROJECT_PATH)" in \
 	""|/*|..|../*|*/..|*/../*) \
-		echo "Exercise '$(EXERCISE_PATH)' must be a relative path beneath playground/" >&2; exit 2 ;; \
+		echo "Project '$(PROJECT_PATH)' must be a relative path beneath playground/" >&2; exit 2 ;; \
 	esac
-@if [ ! -d "$(EXERCISE_DIR)" ]; then \
-	echo "Exercise '$(EXERCISE_PATH)' does not exist" >&2; exit 2; \
+@if [ ! -d "$(PROJECT_DIR)" ]; then \
+	echo "Project '$(PROJECT_PATH)' does not exist" >&2; exit 2; \
 fi
-@if [ ! -d "$(EXERCISE_DIR)/$(1)" ]; then \
-	echo "Exercise '$(EXERCISE_PATH)' has no $(1) implementation" >&2; exit 2; \
+@if [ ! -d "$(PROJECT_DIR)/$(1)" ]; then \
+	echo "Project '$(PROJECT_PATH)' has no $(1) implementation" >&2; exit 2; \
 fi
   endef
 endif
 
-SELECTED_PYTHON_EXERCISES := $(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/python,$(PYTHON_EXERCISES))
-RUST_CARGO_ARGS := $(if $(EXERCISE_GOAL),--manifest-path $(EXERCISE_DIR)/rust/Cargo.toml,--workspace)
+SELECTED_PYTHON_PROJECTS := $(if $(PROJECT_GOAL),$(PROJECT_DIR)/python,$(PYTHON_PROJECTS))
+RUST_CARGO_ARGS := $(if $(PROJECT_GOAL),--manifest-path $(PROJECT_DIR)/rust/Cargo.toml,--workspace)
 
 define PREPARE_PYTHON
 @if [ ! -x "$(PYTHON_BIN)" ]; then \
@@ -84,23 +84,23 @@ endef
 bench: bench-rs bench-py bench-c bench-cpp
 
 bench-rs:
-	$(call VALIDATE_EXERCISE,rust)
+	$(call VALIDATE_PROJECT,rust)
 	CARGO_TARGET_DIR="$(CURDIR)/target" cargo bench $(RUST_CARGO_ARGS)
 
 bench-py:
-	$(call VALIDATE_EXERCISE,python)
+	$(call VALIDATE_PROJECT,python)
 	$(PREPARE_PYTHON)
-	@set -e; for dir in $(SELECTED_PYTHON_EXERCISES); do \
+	@set -e; for dir in $(SELECTED_PYTHON_PROJECTS); do \
 		if [ -d "$$dir/benches" ]; then \
 			PYTHONPATH="$$dir/src" $(PYTEST) "$$dir/benches" --benchmark-only; \
 		fi; \
 	done
 
 bench-c bench-cpp: bench-%:
-	$(call VALIDATE_EXERCISE,$*)
-	$(CMAKE) -S . -B "build/$*/benchmark$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_BENCHMARKING=ON -DEXERCISE_PATH="$(EXERCISE_PATH)"
-	$(CMAKE) --build "build/$*/benchmark$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" --config Release
-	$(CTEST) --test-dir "build/$*/benchmark$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" --build-config Release --label-regex benchmark --verbose
+	$(call VALIDATE_PROJECT,$*)
+	$(CMAKE) -S . -B "build/$*/benchmark$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_BENCHMARKING=ON -DPROJECT_PATH="$(PROJECT_PATH)"
+	$(CMAKE) --build "build/$*/benchmark$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" --config Release
+	$(CTEST) --test-dir "build/$*/benchmark$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" --build-config Release --label-regex benchmark --verbose
 
 clean: clean-rs clean-py clean-c clean-cpp
 	rm -rf target build
@@ -120,7 +120,7 @@ format-rs:
 
 format-py:
 	$(PREPARE_PYTHON)
-	$(RUFF) format $(PYTHON_EXERCISES)
+	$(RUFF) format $(PYTHON_PROJECTS)
 
 format-c format-cpp: format-%:
 	$(call REQUIRE_TOOL,$(CLANG_FORMAT))
@@ -131,29 +131,29 @@ lint-rs:
 
 lint-py:
 	$(PREPARE_PYTHON)
-	$(RUFF) check $(PYTHON_EXERCISES)
+	$(RUFF) check $(PYTHON_PROJECTS)
 
 lint-c lint-cpp: lint-%:
 	$(call REQUIRE_TOOL,$(CLANG_TIDY))
-	$(CMAKE) -S . -B "build/$*/lint$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" -DBUILD_TESTING=ON -DBUILD_BENCHMARKING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-	$(CMAKE) --build "build/$*/lint$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))"
-	$(CLANG_TIDY) --warnings-as-errors='*' -p "build/$*/lint$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" $(if $(filter c,$*),$(C_SOURCES),$(CPP_SOURCES))
+	$(CMAKE) -S . -B "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -DBUILD_TESTING=ON -DBUILD_BENCHMARKING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+	$(CMAKE) --build "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))"
+	$(CLANG_TIDY) --warnings-as-errors='*' -p "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" $(if $(filter c,$*),$(C_SOURCES),$(CPP_SOURCES))
 
 test: test-rs test-py test-c test-cpp
 
 test-rs:
-	$(call VALIDATE_EXERCISE,rust)
+	$(call VALIDATE_PROJECT,rust)
 	CARGO_TARGET_DIR="$(CURDIR)/target" cargo test $(RUST_CARGO_ARGS)
 
 test-py:
-	$(call VALIDATE_EXERCISE,python)
+	$(call VALIDATE_PROJECT,python)
 	$(PREPARE_PYTHON)
-	@set -e; for dir in $(SELECTED_PYTHON_EXERCISES); do \
+	@set -e; for dir in $(SELECTED_PYTHON_PROJECTS); do \
 		PYTHONPATH="$$dir/src" $(PYTEST) "$$dir/tests"; \
 	done
 
 test-c test-cpp: test-%:
-	$(call VALIDATE_EXERCISE,$*)
-	$(CMAKE) -S "$(if $(EXERCISE_GOAL),$(EXERCISE_DIR)/$*,.)" -B "build/$*/test$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" -DBUILD_TESTING=ON $(if $(EXERCISE_GOAL),,-DC_FAMILY_LANGUAGE=$*)
-	$(CMAKE) --build "build/$*/test$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))"
-	$(CTEST) --test-dir "build/$*/test$(if $(EXERCISE_GOAL),/$(EXERCISE_PATH))" --output-on-failure
+	$(call VALIDATE_PROJECT,$*)
+	$(CMAKE) -S "$(if $(PROJECT_GOAL),$(PROJECT_DIR)/$*,.)" -B "build/$*/test$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -DBUILD_TESTING=ON $(if $(PROJECT_GOAL),,-DC_FAMILY_LANGUAGE=$*)
+	$(CMAKE) --build "build/$*/test$(if $(PROJECT_GOAL),/$(PROJECT_PATH))"
+	$(CTEST) --test-dir "build/$*/test$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" --output-on-failure

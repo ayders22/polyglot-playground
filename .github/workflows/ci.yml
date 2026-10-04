@@ -40,7 +40,7 @@ jobs:
             lint: make lint-rs
             test: make test-rs
             benchmark: make bench-rs
-            exercise-benchmark: make bench-rs playground/concepts/hello-world
+            project-benchmark: make bench-rs playground/concepts/hello-world
             cache: cargo
 
           - name: Python
@@ -54,7 +54,7 @@ jobs:
             lint: make lint-py
             test: make test-py
             benchmark: make bench-py
-            exercise-benchmark: make bench-py playground/concepts/hello-world
+            project-benchmark: make bench-py playground/concepts/hello-world
             cache: python
             python-version: "3.12"
 
@@ -69,7 +69,7 @@ jobs:
             lint: make lint-c
             test: make test-c
             benchmark: make bench-c
-            exercise-benchmark: make bench-c playground/concepts/hello-world
+            project-benchmark: make bench-c playground/concepts/hello-world
             cache: ccache
 
           - name: C++
@@ -83,7 +83,7 @@ jobs:
             lint: make lint-cpp
             test: make test-cpp
             benchmark: make bench-cpp
-            exercise-benchmark: make bench-cpp playground/concepts/hello-world
+            project-benchmark: make bench-cpp playground/concepts/hello-world
             cache: ccache
 
     steps:
@@ -136,5 +136,5 @@ jobs:
       - name: Benchmark
         run: ${{ matrix.benchmark }}
 
-      - name: Benchmark hello-world exercise
-        run: ${{ matrix.exercise-benchmark }}
+      - name: Benchmark hello-world project
+        run: ${{ matrix.project-benchmark }}

@@ -5,12 +5,12 @@ project(polyglot_playground VERSION 0.1.0 LANGUAGES C CXX)
 include(CTest)
 
 option(BUILD_BENCHMARKING "Build benchmarks" OFF)
-set(EXERCISE_PATH "" CACHE STRING "Exercise path relative to playground")
+set(PROJECT_PATH "" CACHE STRING "Project path relative to playground")
 
 set(PLAYGROUND_DIR "${CMAKE_CURRENT_SOURCE_DIR}/playground")
 set(C_FAMILY_LANGUAGES c cpp)
 set(C_FAMILY_LANGUAGE "" CACHE STRING "C-family implementation language to build (c or cpp)")
-set(EXERCISE_CMAKELISTS)
+set(PROJECT_CMAKELISTS)
 
 if(C_FAMILY_LANGUAGE)
     if(NOT C_FAMILY_LANGUAGE IN_LIST C_FAMILY_LANGUAGES)
@@ -19,25 +19,25 @@ if(C_FAMILY_LANGUAGE)
     set(C_FAMILY_LANGUAGES "${C_FAMILY_LANGUAGE}")
 endif()
 
-if(EXERCISE_PATH)
+if(PROJECT_PATH)
     foreach(language IN LISTS C_FAMILY_LANGUAGES)
-        set(exercise_cmakelists "${PLAYGROUND_DIR}/${EXERCISE_PATH}/${language}/CMakeLists.txt")
-        if(EXISTS "${exercise_cmakelists}")
-            list(APPEND EXERCISE_CMAKELISTS "${exercise_cmakelists}")
+        set(project_cmakelists "${PLAYGROUND_DIR}/${PROJECT_PATH}/${language}/CMakeLists.txt")
+        if(EXISTS "${project_cmakelists}")
+            list(APPEND PROJECT_CMAKELISTS "${project_cmakelists}")
         endif()
     endforeach()
 
-    if(NOT EXERCISE_CMAKELISTS)
-        message(FATAL_ERROR "No C or C++ implementation for exercise: ${EXERCISE_PATH}")
+    if(NOT PROJECT_CMAKELISTS)
+        message(FATAL_ERROR "No C or C++ implementation for project: ${PROJECT_PATH}")
     endif()
 else()
     file(
-        GLOB_RECURSE EXERCISE_CMAKELISTS
+        GLOB_RECURSE PROJECT_CMAKELISTS
         CONFIGURE_DEPENDS
         RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
         "${PLAYGROUND_DIR}/*/CMakeLists.txt")
     string(JOIN "|" C_FAMILY_LANGUAGE_PATTERN ${C_FAMILY_LANGUAGES})
-    list(FILTER EXERCISE_CMAKELISTS INCLUDE REGEX "/(${C_FAMILY_LANGUAGE_PATTERN})/CMakeLists\\.txt$")
+    list(FILTER PROJECT_CMAKELISTS INCLUDE REGEX "/(${C_FAMILY_LANGUAGE_PATTERN})/CMakeLists\\.txt$")
 endif()
 
 if(BUILD_BENCHMARKING)
@@ -45,7 +45,7 @@ if(BUILD_BENCHMARKING)
     find_package(benchmark CONFIG REQUIRED)
 endif()
 
-foreach(exercise_cmakelists IN LISTS EXERCISE_CMAKELISTS)
-    cmake_path(GET exercise_cmakelists PARENT_PATH exercise_dir)
-    add_subdirectory("${exercise_dir}")
+foreach(project_cmakelists IN LISTS PROJECT_CMAKELISTS)
+    cmake_path(GET project_cmakelists PARENT_PATH project_dir)
+    add_subdirectory("${project_dir}")
 endforeach()
