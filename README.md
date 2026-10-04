@@ -1,6 +1,6 @@
 # polyglot-playground
 
-C, C++, Rust, Python and more
+Rust, Python, C, C++ and more
 
 ## Commands
 
@@ -16,28 +16,18 @@ make clean-cpp
 
 ### Test
 
-Run the complete suite across all languages:
-
 ```sh
 make test
-```
 
-Run a specific language suite:
+make test-rs
+make test-py
+make test-c
+make test-cpp
 
-```sh
-make test-rs        # cargo test --workspace
-make test-py        # pytest for all Python exercise tests
-make test-c         # cmake + ctest for all C exercise tests
-make test-cpp       # cmake + ctest for all C++ exercise tests
-```
-
-Run tests for a single exercise (for example, the min-max exercise):
-
-```sh
-make test-rs playground/algorithms/min-max
-make test-py playground/algorithms/min-max
-make test-c playground/algorithms/min-max
-make test-cpp playground/algorithms/min-max
+make test-rs playground/concepts/hello-world
+make test-py playground/concepts/hello-world
+make test-c playground/concepts/hello-world
+make test-cpp playground/concepts/hello-world
 ```
 
 ### Format
