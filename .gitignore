@@ -7,7 +7,7 @@ __pycache__/
 /.venv/
 /.pytest_cache/
 /.ruff_cache/
-/.benchmarks/
+.benchmarks/
 
 # C
 build/
