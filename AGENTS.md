@@ -21,3 +21,10 @@
 - Validate with the smallest relevant command or test that checks the changed behavior.
 - If a decision depends on missing facts, ask a precise question instead of assuming.
 - Keep final answers concise, structured, and action-oriented; include only the information needed to move the task forward.
+- Before each tool call, ask: "What is the minimum evidence needed to proceed?"
+- Use one targeted search or symbol lookup before reading files when possible.
+- Once the root cause is identified, patch directly instead of exploring adjacent areas unless required for validation.
+- Do not perform speculative refactors, broad cleanups, or unrelated improvements while fixing a task.
+- Prefer direct action over long discussion when the next step is clear.
+- Keep instructions and implementation steps concrete, narrow, and execution-oriented.
+- Favor high-information responses that move the task forward with minimal token cost.
