@@ -21,11 +21,10 @@ Do not remove useful safeguards or details merely to shorten a skill. Do not inv
 
 1. Use the skills named by the user as the audit targets. If none are named, find and audit every `SKILL.md` under `.github/skills`, excluding this skill. If a requested target cannot be identified or accessed, ask one focused question before auditing.
 2. Read each target `SKILL.md`. For multi-skill audits, compare them as a set; inspect referenced resources only when needed to verify an instruction or detect duplication.
-3. Record only concrete issues. For each, cite the file and quote or locate the relevant text; explain the impact and give a concise correction.
-4. Report results by skill. A material defect changes intended behavior, leaves a required step or decision unspecified, creates conflicting instructions, or prevents the skill from being invoked or completed. Separate these defects from optional wording improvements. If none remain, say the skill passes.
-5. Do not edit skills unless the user asks for fixes. When asked, make the smallest complete changes and preserve intended behavior.
-6. After edits, verify the frontmatter, resource links, and affected instructions once. Report any unresolved issue; do not continue polishing already-satisfied criteria.
+3. Record only concrete, actionable issues. For each, locate the relevant text and determine a concise correction. If the intended behavior cannot be determined without guessing, ask the user before changing it.
+4. Automatically apply the smallest complete corrections to each audited skill with actionable issues; do not wait for a separate request to fix them. Preserve intended behavior and useful safeguards, and do not edit skills without identified issues.
+5. Verify the frontmatter, resource links, and affected instructions in each edited skill once. Report results by skill, including the identified issue and the change made. A material defect changes intended behavior, leaves a required step or decision unspecified, creates conflicting instructions, or prevents the skill from being invoked or completed. If a skill has no actionable issues, say it passes; report any unresolved issue.
 
 ## Stop Rule
 
-Complete one audit pass. If fixes are requested, make one revision pass and one verification pass, then stop. Do not repeat audits for subjective polish, add or revise tests just to continue iteration, or pursue improvements after all material defects are resolved.
+Complete one audit pass, one revision pass for identified actionable issues, and one verification pass, then stop. Do not repeat audits for subjective polish, add or revise tests just to continue iteration, or pursue improvements after all identified issues are resolved.
