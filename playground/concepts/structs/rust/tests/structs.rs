@@ -30,7 +30,7 @@ fn struct_has_borrowed_and_static_members() {
 
     let enterprise = Enterprise {
         name: &name,
-        country: country,
+        country,
         year_founded: &year_founded,
         is_active: &is_active,
     };
