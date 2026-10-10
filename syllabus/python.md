@@ -1,1 +1,3 @@
 - [Iterators](../playground/concepts/iterators/python) — implementing a custom iterator
+- [Min-Max](../playground/algorithms/min-max/python) — finding minimum and maximum values with built-in and manual implementations
+- [Hello World](../playground/concepts/hello-world/python) — defining functions that return values

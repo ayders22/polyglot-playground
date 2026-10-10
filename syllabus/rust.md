@@ -1,1 +1,4 @@
 - [Iterators](../playground/concepts/iterators/rust) — implementing a custom iterator
+- [Min-Max](../playground/algorithms/min-max/rust) — finding minimum and maximum values with built-in and manual implementations
+- [Hello World](../playground/concepts/hello-world/rust) — defining const functions that return values
+- [Structs](../playground/concepts/structs/rust) — scalar, borrowed, and static members

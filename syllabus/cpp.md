@@ -1,1 +1,3 @@
 - [Iterators](../playground/concepts/iterators/cpp) — filtering values with C++ ranges
+- [Min-Max](../playground/algorithms/min-max/cpp) — finding minimum and maximum values with built-in and manual implementations
+- [Hello World](../playground/concepts/hello-world/cpp) — defining functions that return values
