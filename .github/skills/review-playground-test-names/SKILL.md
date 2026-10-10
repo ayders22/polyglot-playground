@@ -9,10 +9,7 @@ Review test function names in the repository's `playground/` directory. These te
 
 ## Naming Convention
 
-- Use concise `snake_case` names that communicate the verified behavior and the programming-language concept being taught.
-- Preserve specific concepts the project teaches, even when the concept is also visible in the project path. Do not reduce a name to a generic result if that hides the lesson, such as changing a name about static string fields to one that only says the value is stored.
-- Prefer language-level concepts over domain data or generic outcomes. For Rust struct tests, name concepts such as scalar-valued fields, `&'static str` fields, borrowed versus static fields, and `static` items.
-- Keep the language construct explicit when it helps readers recognize what the test teaches, even if it repeats a term from the path. For example, prefer `struct_has_scalar_value_members` to `point_stores_coordinates`, and `struct_has_static_str_members` to a name that only says values are stored.
+- Use concise `snake_case` names that describe the verified behavior and explicitly name the programming-language concept being taught. Prefer the language concept over domain data or generic outcomes, even when the concept appears in the project path. For Rust struct tests, name concepts such as scalar-valued fields, `&'static str` fields, borrowed versus static fields, and `static` items. For example, prefer `struct_has_scalar_value_members` to `point_stores_coordinates`, and `struct_has_static_str_members` to a name that only says values are stored.
 - Describe what the test proves, not merely its setup or test mechanics. Read the implementation when necessary to confirm the technical concept, and ensure the assertions support the behavior claimed by the name.
 - Keep names within the same test file coherent in grammar and level of detail.
 - Preserve any prefix or naming shape required by the language's test runner, such as Python's `test_` prefix. The descriptive part must still follow the convention above.
