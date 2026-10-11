@@ -3,6 +3,26 @@ pub struct Point {
     pub y: i32,
 }
 
+pub struct RgbColor(pub u8, pub u8, pub u8);
+
+#[derive(Debug, PartialEq)]
+pub struct UnitMarker;
+
+pub struct Rectangle {
+    pub width: u32,
+    pub height: u32,
+}
+
+impl Rectangle {
+    pub fn new(width: u32, height: u32) -> Self {
+        Self { width, height }
+    }
+
+    pub fn area(&self) -> u32 {
+        self.width * self.height
+    }
+}
+
 pub struct Actrice {
     pub name: &'static str,
     pub surname: &'static str,

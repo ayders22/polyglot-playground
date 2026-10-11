@@ -1,4 +1,4 @@
-use structs::{Actrice, Enterprise, Point, DEFAULT_ENTERPRISE};
+use structs::{Actrice, Enterprise, Point, Rectangle, RgbColor, UnitMarker, DEFAULT_ENTERPRISE};
 
 #[test]
 fn struct_has_scalar_value_members() {
@@ -6,6 +6,40 @@ fn struct_has_scalar_value_members() {
 
     assert_eq!(point.x, 3);
     assert_eq!(point.y, 4);
+}
+
+#[test]
+fn tuple_struct_uses_positional_fields() {
+    let red = RgbColor(255, 0, 0);
+
+    assert_eq!(red.0, 255);
+    assert_eq!(red.1, 0);
+    assert_eq!(red.2, 0);
+}
+
+#[test]
+fn unit_struct_has_no_fields() {
+    let marker = UnitMarker;
+
+    assert_eq!(marker, UnitMarker);
+}
+
+#[test]
+fn struct_has_associated_function() {
+    let rectangle = Rectangle::new(3, 4);
+
+    assert_eq!(rectangle.width, 3);
+    assert_eq!(rectangle.height, 4);
+    assert_eq!(rectangle.area(), 12);
+}
+
+#[test]
+fn struct_update_syntax_overrides_selected_fields() {
+    let original = Point { x: 3, y: 4 };
+    let translated = Point { x: 8, ..original };
+
+    assert_eq!(translated.x, 8);
+    assert_eq!(translated.y, 4);
 }
 
 #[test]
