@@ -1,4 +1,6 @@
-use structs::{Actrice, Enterprise, Point, Rectangle, RgbColor, UnitMarker, DEFAULT_ENTERPRISE};
+use structs::{
+    Actrice, Enterprise, Point, Rectangle, RgbColor, Summary, UnitMarker, DEFAULT_ENTERPRISE,
+};
 
 #[test]
 fn struct_has_scalar_value_members() {
@@ -6,6 +8,49 @@ fn struct_has_scalar_value_members() {
 
     assert_eq!(point.x, 3);
     assert_eq!(point.y, 4);
+}
+
+#[test]
+fn struct_can_be_formatted_with_derived_debug() {
+    let point = Point { x: 3, y: 4 };
+
+    assert_eq!(format!("{point:?}"), "Point { x: 3, y: 4 }");
+}
+
+#[test]
+#[allow(clippy::clone_on_copy)]
+fn struct_can_be_cloned_with_derived_clone() {
+    let point = Point { x: 3, y: 4 };
+    let cloned = point.clone();
+
+    assert_eq!(cloned.x, 3);
+    assert_eq!(cloned.y, 4);
+}
+
+#[test]
+fn struct_can_be_copied_with_derived_copy() {
+    let point = Point { x: 3, y: 4 };
+    let copied = point;
+
+    assert_eq!(point.x, 3);
+    assert_eq!(copied.y, 4);
+}
+
+#[test]
+fn struct_can_be_compared_with_derived_partial_eq() {
+    let point = Point { x: 3, y: 4 };
+    let matching_point = Point { x: 3, y: 4 };
+    let different_point = Point { x: 4, y: 3 };
+
+    assert_eq!(point, matching_point);
+    assert_ne!(point, different_point);
+}
+
+#[test]
+fn struct_implements_custom_trait() {
+    let point = Point { x: 3, y: 4 };
+
+    assert_eq!(point.summary(), "Point at (3, 4)");
 }
 
 #[test]

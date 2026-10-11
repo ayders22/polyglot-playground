@@ -1,6 +1,17 @@
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
+}
+
+pub trait Summary {
+    fn summary(&self) -> String;
+}
+
+impl Summary for Point {
+    fn summary(&self) -> String {
+        format!("Point at ({}, {})", self.x, self.y)
+    }
 }
 
 pub struct RgbColor(pub u8, pub u8, pub u8);
