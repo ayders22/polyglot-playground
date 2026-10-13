@@ -1,5 +1,5 @@
-#ifndef DESIGN_PATTERN_FACTORY_H
-#define DESIGN_PATTERN_FACTORY_H
+#ifndef DESIGN_PATTERN_FACTORY_METHOD_H
+#define DESIGN_PATTERN_FACTORY_METHOD_H
 
 #include <memory>
 #include <string_view>
