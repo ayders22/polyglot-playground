@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CCACHE_DIR: ~/.cache/ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Rust
+            prepare: |
+              rustup update stable
+              rustup default stable
+              rustup component add rustfmt clippy
+            clean: make clean-rs
+            format: |
+              make format-rs
+              git diff --exit-code
+            lint: make lint-rs
+            test: make test-rs
+            benchmark: make bench-rs
+            project-benchmark: make bench-rs playground/concepts/hello-world
+            cache: cargo
+
+          - name: Python
+            prepare: |
+              sudo apt-get update
+              sudo apt-get install -y python3 python3-venv python3-pip
+            clean: make clean-py
+            format: |
+              make format-py
+              git diff --exit-code
+            lint: make lint-py
+            test: make test-py
+            benchmark: make bench-py
+            project-benchmark: make bench-py playground/concepts/hello-world
+            cache: python
+            python-version: "3.12"
+
+          - name: C
+            prepare: |
+              sudo apt-get update
+              sudo apt-get install -y build-essential cmake clang-format clang-tidy ccache libbenchmark-dev
+            clean: make clean-c
+            format: |
+              make format-c
+              git diff --exit-code
+            lint: make lint-c
+            test: make test-c
+            benchmark: make bench-c
+            project-benchmark: make bench-c playground/concepts/hello-world
+            cache: ccache
+
+          - name: C++
+            prepare: |
+              sudo apt-get update
+              sudo apt-get install -y build-essential cmake clang-format clang-tidy ccache libbenchmark-dev
+            clean: make clean-cpp
+            format: |
+              make format-cpp
+              git diff --exit-code
+            lint: make lint-cpp
+            test: make test-cpp
+            benchmark: make bench-cpp
+            project-benchmark: make bench-cpp playground/concepts/hello-world
+            cache: ccache
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        if: matrix.python-version != ''
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Cache Cargo dependencies
+        if: matrix.cache == 'cargo'
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.name }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.name }}-cargo-
+
+      - name: Cache C/C++ compiler output
+        if: matrix.cache == 'ccache'
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.name }}-ccache-
+
+      - name: Prepare
+        run: ${{ matrix.prepare }}
+
+      - name: Clean
+        run: ${{ matrix.clean }}
+
+      - name: Format
+        run: ${{ matrix.format }}
+
+      - name: Lint
+        run: ${{ matrix.lint }}
+
+      - name: Test
+        run: ${{ matrix.test }}
+
+      - name: Benchmark
+        run: ${{ matrix.benchmark }}
+
+      - name: Benchmark hello-world project
+        run: ${{ matrix.project-benchmark }}

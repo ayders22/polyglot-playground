@@ -1,0 +1,5 @@
+BasedOnStyle: LLVM
+BreakBeforeBraces: Custom
+AllowShortFunctionsOnASingleLine: None
+BraceWrapping:
+  AfterFunction: true

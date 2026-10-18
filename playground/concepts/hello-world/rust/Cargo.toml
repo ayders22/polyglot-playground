@@ -1,0 +1,15 @@
+[package]
+name = "hello-world"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dev-dependencies]
+criterion.workspace = true
+
+[[bench]]
+name = "hello_world"
+harness = false
