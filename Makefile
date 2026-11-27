@@ -35,6 +35,7 @@ endif
 PROJECT_GOAL := $(firstword $(PROJECT_ARGUMENTS))
 PROJECT_PATH := $(patsubst $(PLAYGROUND_DIR)/%,%,$(PROJECT_GOAL))
 PROJECT_DIR := $(PLAYGROUND_DIR)/$(PROJECT_PATH)
+PROJECT_LANGUAGE_PARENT := $(notdir $(patsubst %/,%,$(dir $(PROJECT_DIR))))
 
 ifneq ($(PROJECT_GOAL),)
   .PHONY: $(PROJECT_GOAL)
@@ -49,7 +50,10 @@ ifneq ($(PROJECT_GOAL),)
 @if [ ! -d "$(PROJECT_DIR)" ]; then \
 	echo "Project '$(PROJECT_PATH)' does not exist" >&2; exit 2; \
 fi
-@if [ ! -d "$(PROJECT_DIR)/$(1)" ]; then \
+@if [ ! -d "$(PROJECT_DIR)/$(1)" ] && { \
+	[ "$(PROJECT_LANGUAGE_PARENT)" != "$(1)" ] || \
+	[ ! -f "$(PROJECT_DIR)/CMakeLists.txt" ]; \
+}; then \
 	echo "Project '$(PROJECT_PATH)' has no $(1) implementation" >&2; exit 2; \
 fi
   endef
@@ -171,6 +175,6 @@ test-py:
 
 test-c test-cpp: test-%:
 	$(call VALIDATE_PROJECT,$*)
-	$(CMAKE) -S "$(if $(PROJECT_GOAL),$(PROJECT_DIR)/$*,.)" -B "build/$*/test$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -DBUILD_TESTING=ON $(if $(PROJECT_GOAL),,-DC_FAMILY_LANGUAGE=$*)
+	$(CMAKE) -S "$(if $(PROJECT_GOAL),$(if $(and $(filter $*,$(PROJECT_LANGUAGE_PARENT)),$(wildcard $(PROJECT_DIR)/CMakeLists.txt)),$(PROJECT_DIR),$(PROJECT_DIR)/$*),.)" -B "build/$*/test$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -DBUILD_TESTING=ON $(if $(PROJECT_GOAL),,-DC_FAMILY_LANGUAGE=$*)
 	$(CMAKE) --build "build/$*/test$(if $(PROJECT_GOAL),/$(PROJECT_PATH))"
 	$(CTEST) --test-dir "build/$*/test$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" --output-on-failure

@@ -28,6 +28,9 @@ make test-rs playground/thematic/concepts/hello-world
 make test-py playground/thematic/concepts/hello-world
 make test-c playground/thematic/concepts/hello-world
 make test-cpp playground/thematic/concepts/hello-world
+
+make test-cpp playground/language_specific/cpp/hello_world
+make bench-cpp playground/language_specific/cpp/hello_world
 ```
 
 ### Format
