@@ -4,6 +4,8 @@ CTEST ?= ctest
 CLANG_FORMAT ?= clang-format
 CLANG_TIDY ?= clang-tidy
 
+MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 LANGUAGES := rs py c cpp
 PLAYGROUND_DIR ?= playground
 
@@ -14,18 +16,6 @@ LINT_TARGETS := $(addprefix lint-,$(LANGUAGES))
 TEST_TARGETS := test $(addprefix test-,$(LANGUAGES))
 
 ALL_TARGETS := $(BENCHMARK_TARGETS) $(CLEAN_TARGETS) $(FORMAT_TARGETS) $(LINT_TARGETS) $(TEST_TARGETS)
-
-PYTHON_VENV := .venv
-PYTHON_BIN := $(PYTHON_VENV)/bin/python
-PYTEST := $(PYTHON_VENV)/bin/pytest
-RUFF := $(PYTHON_VENV)/bin/ruff
-PYTHON_PROJECTS := $(sort $(shell find $(PLAYGROUND_DIR) -type d -name python))
-
-C_SOURCES := $(sort $(shell find $(PLAYGROUND_DIR) -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' \) ! -path '*/tests/*'))
-C_FILES := $(sort $(shell find $(PLAYGROUND_DIR) -type f \( -path '*/c/*.c' -o -path '*/c/*.cc' -o -path '*/c/*.h' \)))
-
-CPP_SOURCES := $(sort $(shell find $(PLAYGROUND_DIR) -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' \) ! -path '*/tests/*'))
-CPP_FILES := $(sort $(shell find $(PLAYGROUND_DIR) -type f \( -path '*/cpp/*.cpp' -o -path '*/cpp/*.cc' -o -path '*/cpp/*.cxx' -o -path '*/cpp/*.hpp' -o -path '*/cpp/*.h' \)))
 
 PROJECT_TASKS := $(filter $(ALL_TARGETS),$(MAKECMDGOALS))
 PROJECT_ARGUMENTS := $(if $(PROJECT_TASKS),$(filter-out $(ALL_TARGETS),$(MAKECMDGOALS)))
@@ -59,39 +49,6 @@ fi
   endef
 endif
 
-SELECTED_PYTHON_PROJECTS := $(if $(PROJECT_GOAL),$(filter $(PROJECT_DIR)/%,$(PYTHON_PROJECTS)),$(PYTHON_PROJECTS))
-RUST_CARGO_ARGS := $(if $(PROJECT_GOAL),--manifest-path $(PROJECT_DIR)/rust/Cargo.toml,--workspace)
-
-ifneq ($(PROJECT_GOAL),)
-  define VALIDATE_PYTHON_PROJECTS
-@case "$(PROJECT_PATH)" in \
-	""|/*|..|../*|*/..|*/../*) \
-		echo "Project '$(PROJECT_PATH)' must be a relative path beneath $(PLAYGROUND_DIR)/" >&2; exit 2 ;; \
-	esac
-@if [ ! -d "$(PROJECT_DIR)" ]; then \
-	echo "Project '$(PROJECT_PATH)' does not exist" >&2; exit 2; \
-fi
-@if [ -z "$(SELECTED_PYTHON_PROJECTS)" ]; then \
-	echo "Project '$(PROJECT_PATH)' has no python implementation" >&2; exit 2; \
-fi
-  endef
-endif
-
-define PREPARE_PYTHON
-@if [ ! -x "$(PYTHON_BIN)" ]; then \
-	$(PYTHON) -m venv "$(PYTHON_VENV)"; \
-fi
-@if ! "$(PYTHON_BIN)" -c "import pip" >/dev/null 2>&1; then \
-	"$(PYTHON_BIN)" -m ensurepip --upgrade; \
-fi
-@if [ ! -x "$(PYTEST)" ] || \
-	[ ! -x "$(RUFF)" ] || \
-	! "$(PYTHON_BIN)" -c "import pytest_benchmark" >/dev/null 2>&1; then \
-	"$(PYTHON_BIN)" -m pip install --upgrade pip; \
-	"$(PYTHON_BIN)" -m pip install --group dev; \
-fi
-endef
-
 define REQUIRE_TOOL
 @if ! command -v "$(1)" >/dev/null 2>&1; then \
 	echo "Required tool '$(1)' was not found" >&2; \
@@ -103,78 +60,13 @@ endef
 
 bench: bench-rs bench-py bench-c bench-cpp
 
-bench-rs:
-	$(call VALIDATE_PROJECT,rust)
-	CARGO_TARGET_DIR="$(CURDIR)/target" cargo bench $(RUST_CARGO_ARGS)
-
-bench-py:
-	$(call VALIDATE_PYTHON_PROJECTS)
-	$(PREPARE_PYTHON)
-	@set -e; for dir in $(SELECTED_PYTHON_PROJECTS); do \
-		if [ -d "$$dir/benches" ]; then \
-			PYTHONPATH="$$dir/src" $(PYTEST) "$$dir/benches" --benchmark-only; \
-		fi; \
-	done
-
-bench-c bench-cpp: bench-%:
-	$(call VALIDATE_PROJECT,$*)
-	$(CMAKE) -S . -B "build/$*/benchmark$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_BENCHMARKING=ON -DPROJECT_PATH="$(PROJECT_PATH)"
-	$(CMAKE) --build "build/$*/benchmark$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" --config Release
-	$(CTEST) --test-dir "build/$*/benchmark$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" --build-config Release --label-regex benchmark --verbose
-
 clean: clean-rs clean-py clean-c clean-cpp
 	rm -rf target build
 
-clean-rs:
-	cargo clean
-
-clean-py:
-	rm -rf $(PYTHON_VENV) .pytest_cache .ruff_cache .benchmarks
-	find $(PLAYGROUND_DIR) -type d -name .benchmarks -prune -exec rm -rf {} +
-	find $(PLAYGROUND_DIR) -type d -name __pycache__ -prune -exec rm -rf {} +
-
-clean-c clean-cpp: clean-%:
-	rm -rf build/$*
-
-format-rs:
-	cargo fmt --all
-
-format-py:
-	$(PREPARE_PYTHON)
-	$(RUFF) format $(PYTHON_PROJECTS)
-
-format-c format-cpp: format-%:
-	$(call REQUIRE_TOOL,$(CLANG_FORMAT))
-	$(CLANG_FORMAT) -i $(if $(filter c,$*),$(C_FILES),$(CPP_FILES))
-
-lint-rs:
-	cargo clippy --workspace --all-targets --all-features -- -D warnings
-
-lint-py:
-	$(PREPARE_PYTHON)
-	$(RUFF) check $(PYTHON_PROJECTS)
-
-lint-c lint-cpp: lint-%:
-	$(call REQUIRE_TOOL,$(CLANG_TIDY))
-	$(CMAKE) -S . -B "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -DBUILD_TESTING=ON -DBUILD_BENCHMARKING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-	$(CMAKE) --build "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))"
-	$(CLANG_TIDY) --warnings-as-errors='*' --header-filter='.*tests/.*' -p "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" $(if $(filter c,$*),$(C_SOURCES),$(CPP_SOURCES)) $$(find "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -type f -name '*_runner.$(if $(filter c,$*),c,cpp)' -print)
-
 test: test-rs test-py test-c test-cpp
 
-test-rs:
-	$(call VALIDATE_PROJECT,rust)
-	CARGO_TARGET_DIR="$(CURDIR)/target" cargo test $(RUST_CARGO_ARGS)
-
-test-py:
-	$(call VALIDATE_PYTHON_PROJECTS)
-	$(PREPARE_PYTHON)
-	@set -e; for dir in $(SELECTED_PYTHON_PROJECTS); do \
-		PYTHONPATH="$$dir/src" $(PYTEST) "$$dir/tests" -v; \
-	done
-
-test-c test-cpp: test-%:
-	$(call VALIDATE_PROJECT,$*)
-	$(CMAKE) -S "$(if $(PROJECT_GOAL),$(if $(and $(filter $*,$(PROJECT_LANGUAGE_PARENT)),$(wildcard $(PROJECT_DIR)/CMakeLists.txt)),$(PROJECT_DIR),$(PROJECT_DIR)/$*),.)" -B "build/$*/test$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -DBUILD_TESTING=ON $(if $(PROJECT_GOAL),,-DC_FAMILY_LANGUAGE=$*)
-	$(CMAKE) --build "build/$*/test$(if $(PROJECT_GOAL),/$(PROJECT_PATH))"
-	$(CTEST) --test-dir "build/$*/test$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" --output-on-failure
+include $(MAKEFILE_DIR)mk/rust.mk
+include $(MAKEFILE_DIR)mk/python.mk
+include $(MAKEFILE_DIR)mk/c.mk
+include $(MAKEFILE_DIR)mk/cpp.mk
+include $(MAKEFILE_DIR)mk/c-family.mk
