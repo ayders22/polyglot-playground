@@ -24,10 +24,10 @@ make test-py
 make test-c
 make test-cpp
 
-make test-rs playground/concepts/hello-world
-make test-py playground/concepts/hello-world
-make test-c playground/concepts/hello-world
-make test-cpp playground/concepts/hello-world
+make test-rs playground/thematic/concepts/hello-world
+make test-py playground/thematic/concepts/hello-world
+make test-c playground/thematic/concepts/hello-world
+make test-cpp playground/thematic/concepts/hello-world
 ```
 
 ### Format
