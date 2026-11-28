@@ -1,4 +1,5 @@
 RUST_CARGO_ARGS := $(if $(PROJECT_GOAL),--manifest-path $(PROJECT_DIR)/rust/Cargo.toml,--workspace)
+RUST_FMT_ARGS := $(if $(PROJECT_GOAL),--manifest-path $(PROJECT_DIR)/rust/Cargo.toml,--all)
 
 bench-rs:
 	$(call VALIDATE_PROJECT,rust)
@@ -8,7 +9,8 @@ clean-rs:
 	cargo clean
 
 format-rs:
-	cargo fmt --all
+	$(call VALIDATE_PROJECT,rust)
+	cargo fmt $(RUST_FMT_ARGS)
 
 lint-rs:
 	$(call VALIDATE_PROJECT,rust)

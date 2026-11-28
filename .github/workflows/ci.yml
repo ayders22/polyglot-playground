@@ -37,6 +37,9 @@ jobs:
             format: |
               make format-rs
               git diff --exit-code
+            project-format: |
+              make format-rs playground/thematic/concepts/hello-world
+              git diff --exit-code
             lint: make lint-rs
             test: make test-rs
             benchmark: make bench-rs
@@ -52,6 +55,9 @@ jobs:
             clean: make clean-py
             format: |
               make format-py
+              git diff --exit-code
+            project-format: |
+              make format-py playground/thematic/concepts/hello-world
               git diff --exit-code
             lint: make lint-py
             test: make test-py
@@ -70,6 +76,9 @@ jobs:
             format: |
               make format-c
               git diff --exit-code
+            project-format: |
+              make format-c playground/thematic/concepts/hello-world
+              git diff --exit-code
             lint: make lint-c
             test: make test-c
             benchmark: make bench-c
@@ -85,6 +94,9 @@ jobs:
             clean: make clean-cpp
             format: |
               make format-cpp
+              git diff --exit-code
+            project-format: |
+              make format-cpp playground/thematic/concepts/hello-world
               git diff --exit-code
             lint: make lint-cpp
             test: make test-cpp
@@ -134,6 +146,9 @@ jobs:
 
       - name: Format
         run: ${{ matrix.format }}
+
+      - name: Format hello-world project
+        run: ${{ matrix.project-format }}
 
       - name: Lint
         run: ${{ matrix.lint }}

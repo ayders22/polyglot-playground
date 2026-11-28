@@ -40,6 +40,11 @@ make format-rs
 make format-py
 make format-c
 make format-cpp
+
+make format-rs playground/thematic/concepts/hello-world
+make format-py playground/thematic/concepts/hello-world
+make format-c playground/thematic/concepts/hello-world
+make format-cpp playground/thematic/concepts/hello-world
 ```
 
 ### Lint

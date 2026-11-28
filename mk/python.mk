@@ -50,8 +50,9 @@ clean-py:
 	find $(PLAYGROUND_DIR) -type d -name __pycache__ -prune -exec rm -rf {} +
 
 format-py:
+	$(call VALIDATE_PYTHON_PROJECTS)
 	$(PREPARE_PYTHON)
-	$(RUFF) format $(PYTHON_PROJECTS)
+	$(RUFF) format $(SELECTED_PYTHON_PROJECTS)
 
 lint-py:
 	$(call VALIDATE_PYTHON_PROJECTS)

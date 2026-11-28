@@ -8,8 +8,9 @@ clean-c clean-cpp: clean-%:
 	rm -rf build/$*
 
 format-c format-cpp: format-%:
+	$(call VALIDATE_PROJECT,$*)
 	$(call REQUIRE_TOOL,$(CLANG_FORMAT))
-	$(CLANG_FORMAT) -i $(if $(filter c,$*),$(C_FILES),$(CPP_FILES))
+	$(CLANG_FORMAT) -i $(if $(filter c,$*),$(if $(PROJECT_GOAL),$(filter $(PROJECT_DIR)/%,$(C_FILES)),$(C_FILES)),$(if $(PROJECT_GOAL),$(filter $(PROJECT_DIR)/%,$(CPP_FILES)),$(CPP_FILES)))
 
 lint-c lint-cpp: lint-%:
 	$(call VALIDATE_PROJECT,$*)
