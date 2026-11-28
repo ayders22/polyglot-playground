@@ -40,11 +40,11 @@ jobs:
             project-format: |
               make format-rs playground/thematic/concepts/hello-world
               git diff --exit-code
-            lint: make lint-rs
             test: make test-rs
-            benchmark: make bench-rs
             project-test: make test-rs playground/thematic/concepts/hello-world
+            lint: make lint-rs
             project-lint: make lint-rs playground/thematic/concepts/hello-world
+            benchmark: make bench-rs
             project-benchmark: make bench-rs playground/thematic/concepts/hello-world
             cache: cargo
 
@@ -59,11 +59,11 @@ jobs:
             project-format: |
               make format-py playground/thematic/concepts/hello-world
               git diff --exit-code
-            lint: make lint-py
             test: make test-py
-            benchmark: make bench-py
             project-test: make test-py playground/thematic/concepts/hello-world
+            lint: make lint-py
             project-lint: make lint-py playground/thematic/concepts/hello-world
+            benchmark: make bench-py
             project-benchmark: make bench-py playground/thematic/concepts/hello-world
             cache: python
             python-version: "3.12"
@@ -79,11 +79,11 @@ jobs:
             project-format: |
               make format-c playground/thematic/concepts/hello-world
               git diff --exit-code
-            lint: make lint-c
             test: make test-c
-            benchmark: make bench-c
             project-test: make test-c playground/thematic/concepts/hello-world
+            lint: make lint-c
             project-lint: make lint-c playground/thematic/concepts/hello-world
+            benchmark: make bench-c
             project-benchmark: make bench-c playground/thematic/concepts/hello-world
             cache: ccache
 
@@ -98,11 +98,11 @@ jobs:
             project-format: |
               make format-cpp playground/thematic/concepts/hello-world
               git diff --exit-code
-            lint: make lint-cpp
             test: make test-cpp
-            benchmark: make bench-cpp
             project-test: make test-cpp playground/thematic/concepts/hello-world
+            lint: make lint-cpp
             project-lint: make lint-cpp playground/thematic/concepts/hello-world
+            benchmark: make bench-cpp
             project-benchmark: make bench-cpp playground/thematic/concepts/hello-world
             cache: ccache
 
@@ -150,14 +150,14 @@ jobs:
       - name: Format hello-world project
         run: ${{ matrix.project-format }}
 
-      - name: Lint
-        run: ${{ matrix.lint }}
-
       - name: Test
         run: ${{ matrix.test }}
 
       - name: Test hello-world project
         run: ${{ matrix.project-test }}
+
+      - name: Lint
+        run: ${{ matrix.lint }}
 
       - name: Lint hello-world project
         run: ${{ matrix.project-lint }}
