@@ -54,8 +54,9 @@ format-py:
 	$(RUFF) format $(PYTHON_PROJECTS)
 
 lint-py:
+	$(call VALIDATE_PYTHON_PROJECTS)
 	$(PREPARE_PYTHON)
-	$(RUFF) check $(PYTHON_PROJECTS)
+	$(RUFF) check $(SELECTED_PYTHON_PROJECTS)
 
 test-py:
 	$(call VALIDATE_PYTHON_PROJECTS)

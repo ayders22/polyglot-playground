@@ -11,7 +11,8 @@ format-rs:
 	cargo fmt --all
 
 lint-rs:
-	cargo clippy --workspace --all-targets --all-features -- -D warnings
+	$(call VALIDATE_PROJECT,rust)
+	cargo clippy $(RUST_CARGO_ARGS) --all-targets --all-features -- -D warnings
 
 test-rs:
 	$(call VALIDATE_PROJECT,rust)

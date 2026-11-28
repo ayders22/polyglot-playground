@@ -49,4 +49,9 @@ make lint-rs
 make lint-py
 make lint-c
 make lint-cpp
+
+make lint-rs playground/thematic/concepts/hello-world
+make lint-py playground/thematic/design_patterns/factory_method
+make lint-c playground/thematic/concepts/hello-world
+make lint-cpp playground/language_specific/cpp/hello_world
 ```

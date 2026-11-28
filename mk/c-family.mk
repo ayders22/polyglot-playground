@@ -12,10 +12,11 @@ format-c format-cpp: format-%:
 	$(CLANG_FORMAT) -i $(if $(filter c,$*),$(C_FILES),$(CPP_FILES))
 
 lint-c lint-cpp: lint-%:
+	$(call VALIDATE_PROJECT,$*)
 	$(call REQUIRE_TOOL,$(CLANG_TIDY))
-	$(CMAKE) -S . -B "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -DBUILD_TESTING=ON -DBUILD_BENCHMARKING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+	$(CMAKE) -S "$(if $(and $(PROJECT_GOAL),$(filter $*,$(PROJECT_LANGUAGE_PARENT)),$(wildcard $(PROJECT_DIR)/CMakeLists.txt)),$(PROJECT_DIR),.)" -B "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -DBUILD_TESTING=ON -DBUILD_BENCHMARKING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(filter .,$(if $(and $(PROJECT_GOAL),$(filter $*,$(PROJECT_LANGUAGE_PARENT)),$(wildcard $(PROJECT_DIR)/CMakeLists.txt)),$(PROJECT_DIR),.)),-DC_FAMILY_LANGUAGE=$* $(if $(PROJECT_GOAL),-DPROJECT_PATH="$(PROJECT_PATH)"))
 	$(CMAKE) --build "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))"
-	$(CLANG_TIDY) --warnings-as-errors='*' --header-filter='.*tests/.*' -p "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" $(if $(filter c,$*),$(C_SOURCES),$(CPP_SOURCES)) $$(find "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -type f -name '*_runner.$(if $(filter c,$*),c,cpp)' -print)
+	$(CLANG_TIDY) --warnings-as-errors='*' --header-filter='.*tests/.*' -p "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" $(if $(filter c,$*),$(if $(PROJECT_GOAL),$(filter $(PROJECT_DIR)/%,$(C_SOURCES)),$(C_SOURCES)),$(if $(PROJECT_GOAL),$(filter $(PROJECT_DIR)/%,$(CPP_SOURCES)),$(CPP_SOURCES))) $$(find "build/$*/lint$(if $(PROJECT_GOAL),/$(PROJECT_PATH))" -type f -name '*_runner.$(if $(filter c,$*),c,cpp)' -print)
 
 test-c test-cpp: test-%:
 	$(call VALIDATE_PROJECT,$*)
