@@ -1,0 +1,59 @@
+name: Rust CI
+
+on:
+  workflow_call:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-Rust-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-Rust-cargo-
+
+      - name: Prepare
+        run: |
+          rustup update stable
+          rustup default stable
+          rustup component add rustfmt clippy
+
+      - name: Clean
+        run: make clean-rs
+
+      - name: Format
+        run: |
+          make format-rs
+          git diff --exit-code
+
+      - name: Format hello-world project
+        run: |
+          make format-rs playground/thematic/concepts/hello-world
+          git diff --exit-code
+
+      - name: Test
+        run: make test-rs
+
+      - name: Test hello-world project
+        run: make test-rs playground/thematic/concepts/hello-world
+
+      - name: Lint
+        run: make lint-rs
+
+      - name: Lint hello-world project
+        run: make lint-rs playground/thematic/concepts/hello-world
+
+      - name: Benchmark
+        run: make bench-rs
+
+      - name: Benchmark hello-world project
+        run: make bench-rs playground/thematic/concepts/hello-world

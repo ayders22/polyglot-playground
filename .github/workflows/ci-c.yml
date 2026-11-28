@@ -1,0 +1,60 @@
+name: C CI
+
+on:
+  workflow_call:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CCACHE_DIR: ~/.cache/ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache C compiler output
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-C-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-C-ccache-
+
+      - name: Prepare
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake clang-format clang-tidy ccache libbenchmark-dev
+
+      - name: Clean
+        run: make clean-c
+
+      - name: Format
+        run: |
+          make format-c
+          git diff --exit-code
+
+      - name: Format hello-world project
+        run: |
+          make format-c playground/thematic/concepts/hello-world
+          git diff --exit-code
+
+      - name: Test
+        run: make test-c
+
+      - name: Test hello-world project
+        run: make test-c playground/thematic/concepts/hello-world
+
+      - name: Lint
+        run: make lint-c
+
+      - name: Lint hello-world project
+        run: make lint-c playground/thematic/concepts/hello-world
+
+      - name: Benchmark
+        run: make bench-c
+
+      - name: Benchmark hello-world project
+        run: make bench-c playground/thematic/concepts/hello-world
